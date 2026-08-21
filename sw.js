@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'chuncheon60-v1';
+const CACHE_VERSION = 'chuncheon60-v2';
 const PRECACHE = [
   './', 'index.html', 'manifest.json',
-  'styles.css?v=20260821b', 'app.js?v=20260821b',
+  'styles.css?v=20260821c', 'app.js?v=20260821c',
   'images/dakgalbi.jpg', 'images/cafe220.jpg', 'images/gugok.jpg',
   'icons/icon-192.png', 'icons/icon-512.png',
 ];

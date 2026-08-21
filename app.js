@@ -17,9 +17,9 @@ const TIMELINE = [
   { start: '10:50', title: '통나무집닭갈비 본점', note: '10:30 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
   { start: '14:10', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
-  { start: '16:10', end: '16:20', title: '이마트 춘천점', note: '두 팀으로 나눠 진행 — A팀은 장보기, B팀은 🤫 (시크릿 탭)' },
+  { start: '16:10', end: '16:20', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
   { start: '17:10', end: '17:30', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
-  { start: '19:00', label: '저녁', title: '삼겹살 🥓 + 케이크 서프라이즈 🎂 + 게임 🎲', note: '' },
+  { start: '19:00', label: '저녁', title: '삼겹살 🥓', note: '숙소에서 구워 먹어요' },
 ];
 
 const ADDRESSES = [
@@ -86,20 +86,31 @@ async function copyText(text) {
 })();
 
 /* ---------- Countdown (hero) ---------- */
+const DEPARTURES = [
+  { name: '보미네', time: '08:00' },
+  { name: '소영이네', time: '08:30' },
+];
+function fmtDiff(ms) {
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return d > 0 ? `${d}일 ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
 function renderCountdown() {
   const el = $('#countdown');
   const now = nowKST();
-  const trip = new Date(`${TRIP_DATE}T08:00:00+09:00`);
-  const diff = trip - new Date();
-  const today = ymd(now) === TRIP_DATE;
-  if (today) { el.innerHTML = '<strong>오늘이에요.</strong> 좋은 하루 보내요 🎂'; return; }
-  if (diff < 0) { el.innerHTML = '<strong>다녀왔어요.</strong> 고마웠던 하루 🎂'; return; }
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  el.innerHTML = d > 0
-    ? `출발까지 <strong>${d}일 ${h}시간</strong>`
-    : `출발까지 <strong>${h}시간 ${m}분</strong>`;
+  const real = new Date();
+  const lastTrip = new Date(`${TRIP_DATE}T${DEPARTURES[DEPARTURES.length - 1].time}:00+09:00`);
+  if (ymd(now) > TRIP_DATE || (ymd(now) === TRIP_DATE && real > lastTrip && !SIM_TIME)) {
+    el.innerHTML = '<strong>다녀왔어요.</strong> 고마웠던 하루 🎉'; return;
+  }
+  el.innerHTML = DEPARTURES.map(({ name, time }) => {
+    const target = new Date(`${TRIP_DATE}T${time}:00+09:00`);
+    const diff = target - real;
+    const body = diff <= 0 ? '<strong>출발!</strong> 🚗' : `<strong>${fmtDiff(diff)}</strong>`;
+    return `<span class="cd"><span class="cd-name">${name} 출발까지</span> ${body}</span>`;
+  }).join('');
 }
 
 /* ---------- Timeline ---------- */
@@ -114,6 +125,7 @@ function renderTimeline() {
           <p class="tl-time">${time}</p>
           <h3 class="tl-title">${t.title}<span class="tl-badge" hidden>NOW</span></h3>
           ${t.note ? `<p class="tl-note">${t.note}</p>` : ''}
+          ${t.actions ? `<div class="tl-actions">${t.actions.map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
         </div>
       </li>`;
   }).join('');
@@ -203,6 +215,17 @@ function initChecklists(root = document) {
 }
 initChecklists();
 
+/* ---------- 출발 타일: 자동차 튀어나오기 + 물들기 ---------- */
+$$('.tile-depart').forEach((tile) => {
+  tile.addEventListener('click', () => {
+    tile.classList.toggle('tinted');
+    tile.classList.remove('drive');
+    void tile.offsetWidth; // 애니메이션 재시작
+    tile.classList.add('drive');
+    tile.addEventListener('animationend', () => tile.classList.remove('drive'), { once: true });
+  });
+});
+
 /* ---------- Secret vault (PIN 0822) ---------- */
 (function initVault() {
   const PIN = '0822';
@@ -215,6 +238,7 @@ initChecklists();
   const tpl = $('#secret-template');
   let value = '';
   let busy = false;
+  let openTimer = null;
 
   const draw = () => dots.forEach((d, i) => d.classList.toggle('on', i < value.length));
 
@@ -236,15 +260,18 @@ initChecklists();
       $$('.secret-inner > *', content).forEach((el, i) => {
         el.style.setProperty('--i', i);
       });
-      setTimeout(() => { door.hidden = true; vault.classList.remove('opening'); }, 1400);
+      clearTimeout(openTimer);
+      openTimer = setTimeout(() => { door.hidden = true; vault.classList.remove('opening'); }, 1400);
     } else {
       door.hidden = true;
     }
   }
 
   function lock() {
+    clearTimeout(openTimer); openTimer = null;
+    busy = false;
     try { sessionStorage.removeItem(UNLOCK_KEY); } catch {}
-    vault.classList.remove('unlocked', 'opening');
+    vault.classList.remove('unlocked', 'opening', 'granted', 'denied');
     content.hidden = true;
     door.hidden = false;
     value = ''; input.value = ''; draw();
@@ -356,7 +383,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         <button class="a2hs-btn" id="a2hs-close">알겠어요</button>`;
     } else {
       const steps = isIOS
-        ? ['하단 <b>공유 버튼</b> (⎙) 탭', '<b>\'홈 화면에 추가\'</b> 선택', '오른쪽 위 <b>\'추가\'</b> 탭 — 끝!']
+        ? ['<b>주소창</b> 옆 <b>공유 버튼</b> (⎙) 탭', '아래로 내려 <b>\'홈 화면에 추가\'</b> 선택', '오른쪽 위 <b>\'추가\'</b> 탭 — 끝!']
         : ['오른쪽 위 <b>⋮ 메뉴</b> 탭', '<b>\'홈 화면에 추가\'</b> 또는 <b>\'앱 설치\'</b> 선택', '<b>\'설치\'</b> 탭 — 끝!'];
       body = `
         <div class="a2hs-ic"><img src="icons/icon-192.png" alt="" width="64" height="64"/></div>
@@ -499,5 +526,6 @@ renderAddresses();
 renderCountdown();
 updateTimeline();
 loadWeather();
-setInterval(() => { updateTimeline(); renderCountdown(); }, 30 * 1000);
+setInterval(updateTimeline, 30 * 1000);
+setInterval(renderCountdown, 1000);
 setInterval(loadWeather, 10 * 60 * 1000);

@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="환갑여행" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="styles.css?v=20260821b" />
+<link rel="stylesheet" href="styles.css?v=20260821c" />
 </head>
 <body>
 
@@ -24,7 +24,7 @@
   <div class="hero-inner reveal">
     <p class="eyebrow">2026. 8. 22. 토요일 · 강원 춘천</p>
     <h1 class="hero-title">환갑,<br/>춘천에서.</h1>
-    <p class="hero-sub">예순 번의 여름을 지나온 두 분께.<br class="br-m"/>닭갈비와 폭포와 케이크, 그리고 우리.</p>
+    <p class="hero-sub">예순 번의 여름을 지나온 두 분께.<br class="br-m"/>닭갈비와 폭포와 호수, 그리고 우리.</p>
     <div class="hero-countdown" id="countdown" aria-live="polite"></div>
     <a class="hero-cta" href="#timeline">오늘의 일정 보기 <span aria-hidden="true">›</span></a>
   </div>
@@ -46,14 +46,16 @@
         <p class="tile-value">춘천시 서면 금산리 477‑1</p>
         <p class="tile-note">의암호 바로 옆. 해질녘 산책 코스.</p>
       </div>
-      <div class="tile">
+      <button type="button" class="tile tile-depart" data-car="bomi" aria-label="보미네 출발 08:00">
         <p class="tile-label">보미네 출발</p>
         <p class="tile-value big">08:00</p>
-      </div>
-      <div class="tile">
+        <span class="car" aria-hidden="true">🚗</span>
+      </button>
+      <button type="button" class="tile tile-depart" data-car="soyoung" aria-label="소영이네 출발 08:30">
         <p class="tile-label">소영이네 출발</p>
         <p class="tile-value big">08:30</p>
-      </div>
+        <span class="car" aria-hidden="true">🚙</span>
+      </button>
       <div class="tile tile-wide">
         <p class="tile-label">이동</p>
         <p class="tile-value">약 1h 45m</p>
@@ -179,28 +181,21 @@
 <section id="shopping" class="section section-dark">
   <div class="container">
     <h2 class="section-title reveal">장보기.</h2>
-    <p class="section-lead reveal">16:10, 이마트 춘천점. 두 팀으로 나눠요.</p>
+    <p class="section-lead reveal">16:10, 이마트 춘천점. 저녁거리 장보기.</p>
 
     <div class="split reveal">
       <a class="split-card split-link" href="https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing" target="_blank" rel="noopener">
-        <p class="split-label">A팀</p>
+        <p class="split-label">Google Sheets</p>
         <h3>🛒 장보기 리스트</h3>
         <p>Google Sheets에서 실시간으로 체크하며 장보기</p>
         <span class="split-cta">시트 열기 ›</span>
-      </a>
-      <a class="split-card split-link" href="#secret">
-        <p class="split-label">B팀</p>
-        <h3>🤫 비밀 임무</h3>
-        <p>B팀이 할 일은 시크릿 탭에 있어요</p>
-        <span class="split-cta">시크릿 열기 ›</span>
       </a>
     </div>
 
     <h3 class="sub-title reveal">저녁 메뉴</h3>
     <div class="menu reveal">
       <div class="menu-item"><span class="menu-emoji">🥓</span><span>삼겹살</span></div>
-      <div class="menu-item"><span class="menu-emoji">🎂</span><span>케이크 서프라이즈</span></div>
-      <div class="menu-item"><span class="menu-emoji">🎲</span><span>게임</span></div>
+      <div class="menu-item"><span class="menu-emoji">🍶</span><span>소주</span></div>
     </div>
   </div>
 </section>
@@ -211,11 +206,10 @@
     <h2 class="section-title reveal">시크릿.</h2>
     <p class="section-lead reveal">주인공 몰래. 우리끼리만.</p>
 
-    <div class="vault reveal" id="vault">
+    <div class="vault" id="vault">
       <div class="vault-door" id="vault-door">
         <div class="vault-ring"><div class="vault-ring-inner"><span class="vault-lock" aria-hidden="true">🔒</span></div></div>
         <p class="vault-title">암호를 입력하세요</p>
-        <p class="vault-hint">네 자리 숫자 · 힌트: 그날</p>
         <form class="pin" id="pin-form" autocomplete="off">
           <div class="pin-dots" id="pin-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <input class="pin-input" id="pin-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4자리 암호" />
@@ -238,7 +232,7 @@
         </div>
 
         <h3 class="secret-h">🎂 케이크</h3>
-        <p class="secret-lead">16:10 이마트에서 B팀이 빠져나와 픽업.</p>
+        <p class="secret-lead">16:10 이마트에서 한 명이 슬쩍 빠져나와 픽업.</p>
         <ul class="addr-list secret-addr">
           <li class="addr">
             <span class="addr-emoji" aria-hidden="true">🎂</span>
@@ -345,6 +339,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=20260821b"></script>
+<script src="app.js?v=20260821c"></script>
 </body>
 </html>
