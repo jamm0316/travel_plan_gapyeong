@@ -13,7 +13,7 @@ const LON = 127.70;
 const TIMELINE = [
   { start: '08:00', title: '보미네 출발', note: '' },
   { start: '08:30', title: '소영이네 출발', note: '' },
-  { start: '09:10', title: '신대방삼거리 출발', note: '서울양양고속도로 → 남춘천IC → 신북 샘밭 (토요일 오전 기준 약 1시간 40~50분)' },
+  { start: '09:10', origin: { lat: 37.4996, lng: 126.9284 }, title: '신대방삼거리 출발', note: '서울양양고속도로 → 남춘천IC → 신북 샘밭 (토요일 오전 기준 약 1시간 40~50분)' },
   { start: '10:50', place: 'dak', title: '통나무집닭갈비 3호점', note: '11:00 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', place: 'cafe', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
   { start: '14:10', place: 'falls', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
@@ -136,7 +136,7 @@ function renderTimeline() {
           <p class="tl-time">${time}</p>
           <h3 class="tl-title">${t.title}<span class="tl-badge" hidden>NOW</span></h3>
           ${t.note ? `<p class="tl-note">${t.note}</p>` : ''}
-          ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p><p class="tl-eta" data-eta="${t.place}" hidden></p>` : ''}
+          ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p><p class="tl-plan" data-plan="${t.place}" hidden></p><p class="tl-eta" data-eta="${t.place}" hidden></p>` : ''}
           ${(t.place || t.actions) ? `<div class="tl-actions">${t.place ? navButtons(PLACES[t.place]) : ''}${(t.actions || []).map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
         </div>
       </li>`;
@@ -163,6 +163,7 @@ function updateTimeline() {
     TIMELINE.forEach((t, i) => { if (toMin(t.start) <= m) current = i; });
   }
 
+  PLAN.current = state === 'today' ? current : (state === 'before' ? -1 : TIMELINE.length);
   items.forEach((li, i) => {
     li.classList.remove('past', 'now', 'upcoming');
     const badge = $('.tl-badge', li);
@@ -172,6 +173,71 @@ function updateTimeline() {
     if (i < current) li.classList.add('past');
     else if (i === current) { li.classList.add('now'); badge.hidden = false; }
     else li.classList.add('upcoming');
+  });
+}
+
+/* ---------- 현재 시각 기준 예상 도착시각 (구간 소요시간은 OSRM으로 1회 산출) ---------- */
+const PLAN = { legs: null, fromMe: null };
+(async function loadLegs() {
+  // 경로 순서: 출발지(신대방삼거리) → 장소가 있는 일정 순서대로
+  const origin = TIMELINE.find((t) => t.origin)?.origin;
+  const stops = TIMELINE.filter((t) => t.place).map((t) => PLACES[t.place]);
+  if (!origin || !stops.length) return;
+  const pts = [origin, ...stops].map((p) => `${p.lng},${p.lat}`).join(';');
+  try {
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${pts}?overview=false`);
+    const data = await res.json();
+    if (data.code !== 'Ok') throw new Error(data.code);
+    PLAN.legs = data.routes[0].legs.map((l) => l.duration); // legs[i] = (i번째 이전 지점) → stops[i]
+  } catch {
+    // 오프라인/실패 시: 노션 기준 대략치 (초)
+    PLAN.legs = stops.map((p, i) => (i === 0 ? 100 * 60 : 30 * 60));
+  }
+  renderPlan();
+})();
+
+function renderPlan() {
+  if (!PLAN.legs) return;
+  const now = nowKST();
+  const state = ymd(now) === TRIP_DATE ? 'today' : (ymd(now) < TRIP_DATE ? 'before' : 'after');
+  const items = $$('.tl-item');
+  const at = (t) => new Date(`${TRIP_DATE}T${t}:00+09:00`).getTime();
+  const cur = PLAN.current ?? -1;
+  const originItem = TIMELINE.find((t) => t.origin);
+  // 현재 일정이 장소면 "거기 있음", 아니면(출발/이동 중) "다음 장소로 이동 중"
+  const curItem = TIMELINE[cur];
+  const atPlace = state === 'today' && curItem && curItem.place;
+  let prevArrive = null;   // 이전 장소 도착(예상) 시각
+  let prevEnd = originItem ? originItem.start : null;
+  let legIdx = 0, started = false;
+  TIMELINE.forEach((t, i) => {
+    if (!t.place) return;
+    const el = $('.tl-plan', items[i]);
+    const leg = PLAN.legs[legIdx++];
+    const buf = (PLACES[t.place].trafficBuffer || 0) * 60;
+    // 이미 도착한(지난 또는 현재) 장소는 표시 안 함
+    if (state === 'after' || (state === 'today' && i <= cur)) {
+      el.hidden = true;
+      prevArrive = at(t.start); prevEnd = t.end || null;
+      return;
+    }
+    const travel = ((!started && PLAN.fromMe && PLAN.fromMe[t.place] != null) ? PLAN.fromMe[t.place] : leg) + buf;
+    const schedDepart = prevEnd ? at(prevEnd) : at(t.start) - travel * 1000; // 예정 출발
+    let depart;
+    if (!started) {
+      if (state !== 'today') depart = schedDepart;
+      else if (atPlace) depart = Math.max(now.getTime(), schedDepart);   // 현재 장소에서 예정대로 출발
+      else depart = now.getTime();                                        // 이동 중: 지금부터
+    } else depart = Math.max(prevArrive, schedDepart);
+    const arrive = depart + travel * 1000;
+    el.hidden = false;
+    const late = arrive - at(t.start);
+    const lateTxt = late > 5 * 60 * 1000 ? ` <span class="late">예정보다 ${Math.round(late / 60000)}분 늦음</span>` : '';
+    el.innerHTML = (state === 'today' ? '⏱ 지금 기준 ' : '⏱ 09:10 출발 기준 ')
+      + `<strong>${hm(new Date(arrive))} 도착</strong> 예정${buf ? ` (정체 +${Math.round(buf / 60)}분 포함)` : ''}${lateTxt}`;
+    prevArrive = Math.max(arrive, t.end ? at(t.end) : arrive);
+    prevEnd = t.end || null;
+    started = true;
   });
 }
 
@@ -198,12 +264,7 @@ function updateTimeline() {
       const d = durations?.[i], dist = distances?.[i];
       if (d == null || li.classList.contains('past')) { el.hidden = true; return; }
       el.hidden = false;
-      const buf = PLACES[el.dataset.eta].trafficBuffer || 0;
-      const total = d + buf * 60;
-      const arrive = hm(new Date(nowKST().getTime() + total * 1000));
-      el.innerHTML = buf
-        ? `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">·</span> 🚦 정체 +${fmt(buf * 60)} <span class="tl-eta-sep">→</span> <strong>${arrive} 도착</strong> 예상 (약 ${fmt(total)})`
-        : `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">→</span> <strong>${arrive} 도착</strong> 예상`;
+      el.innerHTML = `🚗 내 위치에서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
     });
   }
 
@@ -219,6 +280,8 @@ function updateTimeline() {
       if (data.code !== 'Ok') throw new Error(data.code);
       lastFetchAt = Date.now();
       render(data.durations[0].slice(1), data.distances[0].slice(1));
+      PLAN.fromMe = Object.fromEntries(keys.map((k, i) => [k, data.durations[0][i + 1]]));
+      renderPlan();
       setStatus(`내 위치 기준 · ${hm(nowKST())} 갱신`);
     } catch (e) {
       setStatus('경로 서버에 연결하지 못했어요. 잠시 후 다시 시도합니다.');
@@ -254,6 +317,7 @@ function updateTimeline() {
     if (watchId != null) navigator.geolocation.clearWatch(watchId);
     clearInterval(timer); watchId = null; timer = null; lastPos = null;
     render(null, null);
+    PLAN.fromMe = null; renderPlan();
   }
 
   btn.addEventListener('click', () => (watchId == null ? start() : stop()));
@@ -652,6 +716,6 @@ renderAddresses();
 renderCountdown();
 updateTimeline();
 loadWeather();
-setInterval(updateTimeline, 30 * 1000);
+setInterval(() => { updateTimeline(); renderPlan(); }, 30 * 1000);
 setInterval(renderCountdown, 1000);
 setInterval(loadWeather, 10 * 60 * 1000);

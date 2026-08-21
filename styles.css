@@ -152,6 +152,11 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 .tl-eta { display: inline-block; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: #eef5ff; color: #0a4fb5; font-size: 13px; font-weight: 500; }
 .tl-eta strong { font-weight: 700; }
 .tl-eta-sep { opacity: .5; margin: 0 2px; }
+.tl-plan { display: inline-block; margin-top: 10px; margin-right: 6px; padding: 6px 12px; border-radius: 999px; background: #fff4e5; color: #7a4b00; font-size: 13px; font-weight: 500; line-height: 1.6; }
+.tl-plan strong { font-weight: 700; color: #5a3600; }
+.tl-plan .late { color: #c0392b; font-weight: 600; }
+.tl-plan[hidden] { display: none; }
+.tl-item.now .tl-plan { background: #ffe7c2; }
 .tl-eta { line-height: 1.6; }
 .tl-eta[hidden] { display: none; }
 .eta-bar { margin: 28px 0 8px; padding: 18px 20px; border-radius: 18px; background: var(--card); }
