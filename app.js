@@ -14,7 +14,7 @@ const TIMELINE = [
   { start: '08:00', title: '보미네 출발', note: '' },
   { start: '08:30', title: '소영이네 출발', note: '' },
   { start: '09:10', title: '신대방삼거리 출발', note: '서울양양고속도로 → 남춘천IC → 신북 샘밭 (토요일 오전 기준 약 1시간 40~50분)' },
-  { start: '10:50', place: 'dak', title: '통나무집닭갈비 본점', note: '10:30 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
+  { start: '10:50', place: 'dak', title: '통나무집닭갈비 3호점', note: '11:00 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', place: 'cafe', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
   { start: '14:10', place: 'falls', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
   { start: '16:10', end: '16:20', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
@@ -25,7 +25,7 @@ const TIMELINE = [
 /* 장소 마스터 — 좌표는 카카오맵 기준 (WGS84) */
 const PLACES = {
   lodge:   { emoji: '🏡', name: '숙소 (비안단테펜션)', addr: '강원특별자치도 춘천시 서면 금산리 477-1', lat: 37.9025010, lng: 127.7001772, kakaoId: 1506410889 },
-  dak:     { emoji: '🍗', name: '통나무집닭갈비 본점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 763', lat: 37.9331254, lng: 127.7932856, kakaoId: 8107636 },
+  dak:     { emoji: '🍗', name: '통나무집닭갈비 3호점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 663 1층', lat: 37.9302906, lng: 127.7834141, kakaoId: 565901527 },
   cafe:    { emoji: '☕', name: '카페 드 220볼트', addr: '강원특별자치도 춘천시 동내면 금촌로 107-27 1-3층', lat: 37.8569708, lng: 127.7837874, kakaoId: 184325082 },
   falls:   { emoji: '💦', name: '구곡폭포', addr: '강원특별자치도 춘천시 남산면 강촌구곡길 254', lat: 37.7970328, lng: 127.6158520, kakaoId: 8235953 },
   emart:   { emoji: '🛒', name: '이마트 춘천점', addr: '강원특별자치도 춘천시 경춘로 2353', lat: 37.8638304, lng: 127.7185711, kakaoId: 8546847 },
