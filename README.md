@@ -1,1 +1,25 @@
-https://jamm0316.github.io/travel_plan_gapyeong/
+# 🎂 춘천 환갑여행 — 2026. 8. 22 (토)
+
+노션 여행 계획을 기반으로 만든 정적 웹사이트. 프레임워크/빌드 없이 `index.html`, `styles.css`, `app.js`, `images/` 만으로 동작합니다.
+
+## 실행
+```bash
+python3 -m http.server 8080   # 이후 http://localhost:8080
+```
+Vercel / GitHub Pages / Netlify 등 아무 정적 호스팅에 폴더째 올리면 됩니다.
+
+## 기능
+- 하단 글래스 네비게이션 — 8개 섹션 바로 이동, 스크롤 위치에 따라 활성 표시
+- 주소록 — `복사` 버튼(클립보드), `지도` 버튼(카카오맵)
+- 타임라인 — KST 기준 지난 일정 흐리게 / 현재 일정 bold + 테두리 + NOW 배지 / 남은 일정 그대로. 30초마다 갱신
+- 날씨 — Open‑Meteo(무료, 키 불필요)로 춘천 실시간 날씨 + 8/22 시간별 예보. 10분마다 갱신
+- 장보기 — Google Sheets 링크 카드, 케이크 픽업 주소 복사
+- 준비물 / 게임 / 챙길 것 — 체크 상태가 기기(localStorage)에 저장
+
+## 당일 화면 미리보기
+`index.html?t=HH:MM` 으로 여행 당일 특정 시각을 시뮬레이션할 수 있습니다. 예: `?t=13:40`
+
+## 수정하기
+- 일정·주소: `app.js` 상단 `TIMELINE`, `ADDRESSES`
+- 본문 텍스트: `index.html`
+- 장소 사진: `images/` (카카오맵 장소 페이지의 대표 사진)
