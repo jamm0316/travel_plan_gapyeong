@@ -14,20 +14,31 @@ const TIMELINE = [
   { start: '08:00', title: '보미네 출발', note: '' },
   { start: '08:30', title: '소영이네 출발', note: '' },
   { start: '09:10', title: '신대방삼거리 출발', note: '서울양양고속도로 → 남춘천IC → 신북 샘밭 (토요일 오전 기준 약 1시간 40~50분)' },
-  { start: '10:50', title: '통나무집닭갈비 본점', note: '10:30 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
-  { start: '12:30', end: '12:55', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
-  { start: '14:10', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
-  { start: '16:10', end: '16:20', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
-  { start: '17:10', end: '17:30', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
+  { start: '10:50', place: 'dak', title: '통나무집닭갈비 본점', note: '10:30 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
+  { start: '12:30', end: '12:55', place: 'cafe', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
+  { start: '14:10', place: 'falls', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
+  { start: '16:10', end: '16:20', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
+  { start: '17:10', end: '17:30', place: 'lodge', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
   { start: '19:00', label: '저녁', title: '삼겹살 🥓', note: '숙소에서 구워 먹어요' },
 ];
 
-const ADDRESSES = [
-  { emoji: '🏡', name: '숙소', addr: '강원특별자치도 춘천시 서면 금산리 477-1' },
-  { emoji: '🍗', name: '통나무집닭갈비 본점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 763', kakao: 'https://place.map.kakao.com/8107636' },
-  { emoji: '☕', name: '카페 드 220볼트', addr: '강원특별자치도 춘천시 동내면 금촌로 107-27 1-3층', kakao: 'https://place.map.kakao.com/184325082' },
-  { emoji: '💦', name: '구곡폭포', addr: '강원 춘천시 남산면 강촌구곡길 254', kakao: 'https://place.map.kakao.com/8235953' },
-];
+/* 장소 마스터 — 좌표는 카카오맵 기준 (WGS84) */
+const PLACES = {
+  lodge:   { emoji: '🏡', name: '숙소 (비안단테펜션)', addr: '강원특별자치도 춘천시 서면 금산리 477-1', lat: 37.9025010, lng: 127.7001772, kakaoId: 1506410889 },
+  dak:     { emoji: '🍗', name: '통나무집닭갈비 본점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 763', lat: 37.9331254, lng: 127.7932856, kakaoId: 8107636 },
+  cafe:    { emoji: '☕', name: '카페 드 220볼트', addr: '강원특별자치도 춘천시 동내면 금촌로 107-27 1-3층', lat: 37.8569708, lng: 127.7837874, kakaoId: 184325082 },
+  falls:   { emoji: '💦', name: '구곡폭포', addr: '강원특별자치도 춘천시 남산면 강촌구곡길 254', lat: 37.7970328, lng: 127.6158520, kakaoId: 8235953 },
+  emart:   { emoji: '🛒', name: '이마트 춘천점', addr: '강원특별자치도 춘천시 경춘로 2353', lat: 37.8638304, lng: 127.7185711, kakaoId: 8546847 },
+  cake:    { emoji: '🎂', name: '케이크 픽업 (케이크베이크)', addr: '강원특별자치도 춘천시 춘천로 232 1층', lat: 37.8781191, lng: 127.7395238, kakaoId: 1783314184 },
+};
+const ADDRESSES = [PLACES.lodge, PLACES.dak, PLACES.cafe, PLACES.falls, PLACES.emart];
+
+const tmapUrl = (p) => `tmap://route?goalname=${encodeURIComponent(p.name)}&goalx=${p.lng}&goaly=${p.lat}`;
+const kakaoUrl = (p) => p.kakaoId ? `https://map.kakao.com/link/to/${p.kakaoId}` : `https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`;
+const navButtons = (p, { dark = false } = {}) => `
+  <button class="copy-btn" data-copy="${p.addr}">주소 복사</button>
+  <a class="map-btn tmap" href="${tmapUrl(p)}" data-tmap>티맵</a>
+  <a class="map-btn" href="${kakaoUrl(p)}" target="_blank" rel="noopener">카카오맵</a>`;
 
 /* ---------- 유틸 ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -125,7 +136,8 @@ function renderTimeline() {
           <p class="tl-time">${time}</p>
           <h3 class="tl-title">${t.title}<span class="tl-badge" hidden>NOW</span></h3>
           ${t.note ? `<p class="tl-note">${t.note}</p>` : ''}
-          ${t.actions ? `<div class="tl-actions">${t.actions.map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
+          ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p>` : ''}
+          ${(t.place || t.actions) ? `<div class="tl-actions">${t.place ? navButtons(PLACES[t.place]) : ''}${(t.actions || []).map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
         </div>
       </li>`;
   }).join('');
@@ -166,21 +178,15 @@ function updateTimeline() {
 /* ---------- Addresses ---------- */
 function renderAddresses() {
   const list = $('#addr-list');
-  list.innerHTML = ADDRESSES.map((a) => {
-    const mapUrl = a.kakao || `https://map.kakao.com/link/search/${encodeURIComponent(a.addr)}`;
-    return `
+  list.innerHTML = ADDRESSES.map((a) => `
       <li class="addr">
         <span class="addr-emoji" aria-hidden="true">${a.emoji}</span>
         <div class="addr-body">
           <p class="addr-name">${a.name}</p>
           <p class="addr-text">${a.addr}</p>
         </div>
-        <div class="addr-actions">
-          <a class="map-btn" href="${mapUrl}" target="_blank" rel="noopener">지도</a>
-          <button class="copy-btn" data-copy="${a.addr}">복사</button>
-        </div>
-      </li>`;
-  }).join('');
+        <div class="addr-actions">${navButtons(a)}</div>
+      </li>`).join('');
 }
 
 document.addEventListener('click', async (e) => {
@@ -196,6 +202,20 @@ document.addEventListener('click', async (e) => {
   } else {
     toast('복사에 실패했어요');
   }
+});
+
+/* 티맵 미설치 시: 앱이 안 열리면 1.5초 뒤 카카오맵 길찾기로 대체 */
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-tmap]');
+  if (!a) return;
+  const fallback = a.parentElement.querySelector('a[href*="map.kakao.com"]')?.href;
+  if (!fallback) return;
+  const t0 = Date.now();
+  const timer = setTimeout(() => {
+    // 앱으로 전환됐다면 페이지가 숨겨져 타이머가 지연됨 → 그 경우 대체 이동 안 함
+    if (document.visibilityState === 'visible' && Date.now() - t0 < 2500) window.location.href = fallback;
+  }, 1500);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); }, { once: true });
 });
 
 /* ---------- Checklists (localStorage) ---------- */
@@ -247,6 +267,8 @@ $$('.tile-depart').forEach((tile) => {
     content.appendChild(tpl.content.cloneNode(true));
     content.dataset.mounted = '1';
     initChecklists(content);
+    const cake = $('#cake-actions', content);
+    if (cake) cake.innerHTML = navButtons(PLACES.cake);
     $('#secret-lock', content)?.addEventListener('click', lock);
   }
 
