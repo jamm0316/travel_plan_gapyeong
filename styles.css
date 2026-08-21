@@ -149,6 +149,16 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 .tl-note { font-size: 15px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 .tl-note strong { color: var(--fg); font-weight: 600; }
 .tl-addr { font-size: 14px; color: var(--muted); margin-top: 8px; }
+.tl-eta { display: inline-block; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: #eef5ff; color: #0a4fb5; font-size: 13px; font-weight: 500; }
+.tl-eta strong { font-weight: 700; }
+.tl-eta[hidden] { display: none; }
+.eta-bar { margin: 28px 0 8px; padding: 18px 20px; border-radius: 18px; background: var(--card); }
+.eta-toggle { padding: 11px 18px; border-radius: 999px; border: 0; background: var(--fg); color: #fff; font-size: 14px; font-weight: 600; }
+.eta-toggle[aria-pressed="true"] { background: var(--accent); }
+.eta-status { font-size: 13px; color: var(--fg); margin-top: 10px; }
+.eta-status[hidden] { display: none; }
+.eta-note { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+.eta-note strong { color: var(--fg); font-weight: 600; }
 .tl-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tl-actions .copy-btn, .tl-actions .map-btn { font-size: 13px; padding: 9px 14px; }
 .map-btn.tmap { background: #0064ff; color: #fff; border-color: #0064ff; }

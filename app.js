@@ -136,7 +136,7 @@ function renderTimeline() {
           <p class="tl-time">${time}</p>
           <h3 class="tl-title">${t.title}<span class="tl-badge" hidden>NOW</span></h3>
           ${t.note ? `<p class="tl-note">${t.note}</p>` : ''}
-          ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p>` : ''}
+          ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p><p class="tl-eta" data-eta="${t.place}" hidden></p>` : ''}
           ${(t.place || t.actions) ? `<div class="tl-actions">${t.place ? navButtons(PLACES[t.place]) : ''}${(t.actions || []).map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
         </div>
       </li>`;
@@ -174,6 +174,92 @@ function updateTimeline() {
     else li.classList.add('upcoming');
   });
 }
+
+/* ---------- 내 위치 → 일정 장소 소요시간 (OSRM, 무료·교통 미반영) ---------- */
+(function initEta() {
+  const btn = $('#eta-toggle'); if (!btn) return;
+  const status = $('#eta-status');
+  const KEY = 'chuncheon60:eta';
+  const keys = Object.keys(PLACES);
+  let watchId = null, timer = null, lastPos = null, lastFetchAt = 0, inflight = false;
+
+  const fmt = (sec) => {
+    const m = Math.round(sec / 60);
+    if (m < 60) return `${m}분`;
+    return `${Math.floor(m / 60)}시간 ${m % 60 ? `${m % 60}분` : ''}`.trim();
+  };
+  const km = (m) => m < 1000 ? `${Math.round(m)}m` : `${(m / 1000).toFixed(m < 10000 ? 1 : 0)}km`;
+  const setStatus = (msg) => { status.hidden = !msg; status.textContent = msg || ''; };
+
+  function render(durations, distances) {
+    $$('.tl-eta').forEach((el) => {
+      const i = keys.indexOf(el.dataset.eta);
+      const li = el.closest('.tl-item');
+      const d = durations?.[i], dist = distances?.[i];
+      if (d == null || li.classList.contains('past')) { el.hidden = true; return; }
+      el.hidden = false;
+      el.innerHTML = `🚗 여기서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
+    });
+  }
+
+  async function fetchEta(force) {
+    if (!lastPos || inflight) return;
+    if (!force && Date.now() - lastFetchAt < 60 * 1000) return;
+    inflight = true;
+    try {
+      const coords = [`${lastPos.lng},${lastPos.lat}`, ...keys.map((k) => `${PLACES[k].lng},${PLACES[k].lat}`)].join(';');
+      const url = `https://router.project-osrm.org/table/v1/driving/${coords}?sources=0&annotations=duration,distance`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.code !== 'Ok') throw new Error(data.code);
+      lastFetchAt = Date.now();
+      render(data.durations[0].slice(1), data.distances[0].slice(1));
+      setStatus(`내 위치 기준 · ${hm(nowKST())} 갱신`);
+    } catch (e) {
+      setStatus('경로 서버에 연결하지 못했어요. 잠시 후 다시 시도합니다.');
+    } finally { inflight = false; }
+  }
+
+  function onPos(p) {
+    const { latitude: lat, longitude: lng } = p.coords;
+    const moved = !lastPos || Math.hypot(lat - lastPos.lat, (lng - lastPos.lng) * Math.cos(lat * Math.PI / 180)) > 0.002; // ≈200m
+    lastPos = { lat, lng };
+    fetchEta(moved);
+  }
+  function onErr(e) {
+    const msg = e.code === 1 ? '위치 권한이 꺼져 있어요. 브라우저 설정에서 허용해 주세요.' : '위치를 가져오지 못했어요.';
+    setStatus(msg);
+    if (e.code === 1) stop();
+  }
+
+  function start() {
+    if (!('geolocation' in navigator)) { toast('이 기기는 위치를 지원하지 않아요'); return; }
+    btn.setAttribute('aria-pressed', 'true');
+    btn.textContent = '📍 내 위치 추적 중 · 끄기';
+    setStatus('위치 확인 중…');
+    try { localStorage.setItem(KEY, '1'); } catch {}
+    watchId = navigator.geolocation.watchPosition(onPos, onErr, { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 });
+    timer = setInterval(() => fetchEta(true), 2 * 60 * 1000);
+  }
+  function stop() {
+    btn.setAttribute('aria-pressed', 'false');
+    btn.textContent = '📍 내 위치에서 걸리는 시간 보기';
+    setStatus('');
+    try { localStorage.removeItem(KEY); } catch {}
+    if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    clearInterval(timer); watchId = null; timer = null; lastPos = null;
+    render(null, null);
+  }
+
+  btn.addEventListener('click', () => (watchId == null ? start() : stop()));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && watchId != null) fetchEta(true); });
+  // 타임라인 상태가 바뀌어도(past 전환) 배지가 맞게 보이도록
+  setInterval(() => { if (watchId != null && lastPos) $$('.tl-eta').forEach((el) => { if (el.closest('.tl-item').classList.contains('past')) el.hidden = true; }); }, 30 * 1000);
+
+  let auto = false;
+  try { auto = localStorage.getItem(KEY) === '1'; } catch {}
+  if (auto) start();
+})();
 
 /* ---------- Addresses ---------- */
 function renderAddresses() {
