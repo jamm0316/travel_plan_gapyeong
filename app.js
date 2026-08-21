@@ -218,6 +218,19 @@ document.addEventListener('click', (e) => {
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); }, { once: true });
 });
 
+/* ---------- Gallery lightbox ---------- */
+(function initLightbox() {
+  const lb = $('#lightbox'); if (!lb) return;
+  const img = $('img', lb);
+  const close = () => { lb.hidden = true; img.src = ''; document.body.style.overflow = ''; };
+  document.addEventListener('click', (e) => {
+    const src = e.target.closest('.gallery img');
+    if (src) { img.src = src.src; img.alt = src.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; return; }
+    if (e.target.closest('#lightbox')) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) close(); });
+})();
+
 /* ---------- Checklists (localStorage) ---------- */
 function initChecklists(root = document) {
   $$('.checklist[data-list]', root).forEach((ul) => {

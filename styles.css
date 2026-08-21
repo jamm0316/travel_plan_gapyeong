@@ -256,6 +256,31 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 @media (max-width: 680px) { .games { grid-template-columns: 1fr; } }
 
 
+/* ============ Lodge ============ */
+.lodge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+@media (max-width: 760px) { .lodge-grid { grid-template-columns: 1fr; } }
+.lodge-card { background: var(--card); border-radius: var(--radius); padding: 26px 26px 22px; }
+.lodge-card h3 { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+.lodge-card ul { display: flex; flex-direction: column; gap: 8px; }
+.lodge-card li { position: relative; padding-left: 16px; font-size: 15px; line-height: 1.55; color: #3a3a3c; }
+.lodge-card li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: #a1a1a6; }
+.lodge-card strong { color: var(--fg); font-weight: 700; }
+.lodge-warn { background: #fff4e5; }
+.lodge-warn li::before { background: var(--accent-2); }
+
+.gallery { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 4px 0 12px; margin: 0 -24px; padding-left: 24px; padding-right: 24px; scrollbar-width: none; }
+.gallery::-webkit-scrollbar { display: none; }
+.gallery figure { flex: 0 0 min(86%, 640px); scroll-snap-align: center; margin: 0; }
+.gallery img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px; background: var(--card); box-shadow: 0 10px 30px rgba(0,0,0,.10); cursor: zoom-in; }
+.gallery figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; text-align: center; }
+.gallery-hint { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+@media (max-width: 600px) { .gallery { margin: 0 -18px; padding-left: 18px; padding-right: 18px; } }
+
+.lightbox { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.92); display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+.lightbox[hidden] { display: none; }
+.lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+.lightbox-close { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 16px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.15); color: #fff; font-size: 18px; }
+
 /* ============ Secret ============ */
 .secret { position: relative; background: radial-gradient(120% 80% at 50% 0%, #150b2a 0%, #04030a 60%, #000 100%); color: var(--fg-dark); overflow: hidden; }
 .secret .container { position: relative; z-index: 1; }
