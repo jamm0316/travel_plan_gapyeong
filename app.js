@@ -198,10 +198,12 @@ function updateTimeline() {
       const d = durations?.[i], dist = distances?.[i];
       if (d == null || li.classList.contains('past')) { el.hidden = true; return; }
       el.hidden = false;
-      const buf = PLACES[el.dataset.eta].trafficBuffer;
+      const buf = PLACES[el.dataset.eta].trafficBuffer || 0;
+      const total = d + buf * 60;
+      const arrive = hm(new Date(nowKST().getTime() + total * 1000));
       el.innerHTML = buf
-        ? `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">·</span> 🚦 정체 +${fmt(buf * 60)} <span class="tl-eta-sep">→</span> 최종 <strong>약 ${fmt(d + buf * 60)}</strong> 예상`
-        : `🚗 여기서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
+        ? `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">·</span> 🚦 정체 +${fmt(buf * 60)} <span class="tl-eta-sep">→</span> <strong>${arrive} 도착</strong> 예상 (약 ${fmt(total)})`
+        : `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">→</span> <strong>${arrive} 도착</strong> 예상`;
     });
   }
 
