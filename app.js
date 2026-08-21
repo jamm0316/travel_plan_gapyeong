@@ -17,7 +17,7 @@ const TIMELINE = [
   { start: '10:50', title: '통나무집닭갈비 본점', note: '10:30 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
   { start: '14:10', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
-  { start: '16:10', end: '16:20', title: '이마트 춘천점', note: '두 팀으로 나눠 진행 — 한 팀은 장보기, 한 팀은 케이크 픽업 (춘천로 232 1층)' },
+  { start: '16:10', end: '16:20', title: '이마트 춘천점', note: '두 팀으로 나눠 진행 — A팀은 장보기, B팀은 🤫 (시크릿 탭)' },
   { start: '17:10', end: '17:30', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
   { start: '19:00', label: '저녁', title: '삼겹살 🥓 + 케이크 서프라이즈 🎂 + 게임 🎲', note: '' },
 ];
@@ -27,7 +27,6 @@ const ADDRESSES = [
   { emoji: '🍗', name: '통나무집닭갈비 본점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 763', kakao: 'https://place.map.kakao.com/8107636' },
   { emoji: '☕', name: '카페 드 220볼트', addr: '강원특별자치도 춘천시 동내면 금촌로 107-27 1-3층', kakao: 'https://place.map.kakao.com/184325082' },
   { emoji: '💦', name: '구곡폭포', addr: '강원 춘천시 남산면 강촌구곡길 254', kakao: 'https://place.map.kakao.com/8235953' },
-  { emoji: '🎂', name: '케이크 픽업', addr: '강원특별자치도 춘천시 춘천로 232 1층' },
 ];
 
 /* ---------- 유틸 ---------- */
@@ -188,8 +187,10 @@ document.addEventListener('click', async (e) => {
 });
 
 /* ---------- Checklists (localStorage) ---------- */
-(function initChecklists() {
-  $$('.checklist[data-list]').forEach((ul) => {
+function initChecklists(root = document) {
+  $$('.checklist[data-list]', root).forEach((ul) => {
+    if (ul.dataset.bound) return;
+    ul.dataset.bound = '1';
     const key = `chuncheon60:${ul.dataset.list}`;
     let saved = [];
     try { saved = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
@@ -199,6 +200,198 @@ document.addEventListener('click', async (e) => {
       try { localStorage.setItem(key, JSON.stringify(boxes.map((b) => b.checked))); } catch {}
     });
   });
+}
+initChecklists();
+
+/* ---------- Secret vault (PIN 0822) ---------- */
+(function initVault() {
+  const PIN = '0822';
+  const UNLOCK_KEY = 'chuncheon60:unlocked';
+  const vault = $('#vault'); if (!vault) return;
+  const door = $('#vault-door');
+  const content = $('#vault-content');
+  const input = $('#pin-input');
+  const dots = $$('#pin-dots i');
+  const tpl = $('#secret-template');
+  let value = '';
+  let busy = false;
+
+  const draw = () => dots.forEach((d, i) => d.classList.toggle('on', i < value.length));
+
+  function mount() {
+    if (content.dataset.mounted) return;
+    content.appendChild(tpl.content.cloneNode(true));
+    content.dataset.mounted = '1';
+    initChecklists(content);
+    $('#secret-lock', content)?.addEventListener('click', lock);
+  }
+
+  function open(animate) {
+    mount();
+    content.hidden = false;
+    vault.classList.add('unlocked');
+    if (animate) {
+      vault.classList.add('opening');
+      // 진입 연출: 문이 열리며 안쪽 콘텐츠가 순차적으로 떠오름
+      $$('.secret-inner > *', content).forEach((el, i) => {
+        el.style.setProperty('--i', i);
+      });
+      setTimeout(() => { door.hidden = true; vault.classList.remove('opening'); }, 1400);
+    } else {
+      door.hidden = true;
+    }
+  }
+
+  function lock() {
+    try { sessionStorage.removeItem(UNLOCK_KEY); } catch {}
+    vault.classList.remove('unlocked', 'opening');
+    content.hidden = true;
+    door.hidden = false;
+    value = ''; input.value = ''; draw();
+    vault.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function submit() {
+    if (busy) return;
+    busy = true;
+    if (value === PIN) {
+      try { sessionStorage.setItem(UNLOCK_KEY, '1'); } catch {}
+      vault.classList.add('granted');
+      if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+      setTimeout(() => { open(true); busy = false; }, 650);
+    } else {
+      vault.classList.add('denied');
+      if (navigator.vibrate) navigator.vibrate(120);
+      toast('암호가 달라요');
+      setTimeout(() => { vault.classList.remove('denied'); value = ''; input.value = ''; draw(); busy = false; }, 550);
+    }
+  }
+
+  function setValue(v) {
+    value = v.replace(/\D/g, '').slice(0, 4);
+    input.value = value;
+    draw();
+    if (value.length === 4) setTimeout(submit, 120);
+  }
+
+  input.addEventListener('input', () => setValue(input.value));
+  $('#pin-form').addEventListener('submit', (e) => { e.preventDefault(); if (value.length === 4) submit(); });
+  $('#pin-pad').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-k]'); if (!b) return;
+    const k = b.dataset.k;
+    setValue(k === 'del' ? value.slice(0, -1) : value + k);
+  });
+
+  let unlocked = false;
+  try { unlocked = sessionStorage.getItem(UNLOCK_KEY) === '1'; } catch {}
+  if (unlocked) open(false);
+})();
+
+/* ---------- PWA: service worker + 설치 안내 모달 ---------- */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+(function initInstallGuide() {
+  const SEEN_KEY = 'chuncheon60:a2hsSeen';
+  let deferred = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+    reflect();
+  });
+  window.addEventListener('appinstalled', () => {
+    deferred = null;
+    try { localStorage.setItem(SEEN_KEY, '1'); } catch {}
+    $('#a2hs')?.remove();
+  });
+
+  function reflect() {
+    const box = $('#a2hs'); if (!box) return;
+    const btn = $('#a2hs-install', box);
+    if (btn && deferred) { btn.hidden = false; $('#a2hs-steps', box).hidden = true; $('#a2hs-manual', box).hidden = false; }
+  }
+
+  function doInstall() {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then((r) => {
+      if (r?.outcome === 'accepted') { try { localStorage.setItem(SEEN_KEY, '1'); } catch {} }
+      deferred = null;
+      $('#a2hs')?.remove();
+    });
+  }
+
+  function show() {
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (standalone) return;
+
+    const ua = navigator.userAgent;
+    const inKakao = /KAKAOTALK/i.test(ua);
+    const inApp = inKakao || /(NAVER\(inapp|DaumApps|Instagram|FBAN|FBAV|FB_IAB|Line\/)/i.test(ua);
+    const forced = /[?&]a2hs=1(?:&|$)/.test(location.search);
+    if (forced && history.replaceState) {
+      try { history.replaceState(null, document.title, location.href.replace(/[?&]a2hs=1\b/, '').replace(/\?$/, '')); } catch {}
+    }
+    if (!inApp && !forced) {
+      try { if (localStorage.getItem(SEEN_KEY) === '1') return; } catch {}
+    }
+
+    const isIOS = /iP(hone|ad|od)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    let body;
+    if (inKakao) {
+      body = `
+        <div class="a2hs-ic">🌐</div>
+        <h3>브라우저에서 열어주세요</h3>
+        <p class="a2hs-sub">카카오톡 안에서는 홈 화면에 추가할 수 없어요.<br/>아래 버튼을 누르면 사파리·크롬으로 열려요.</p>
+        <button class="a2hs-btn" id="a2hs-open">사파리·크롬에서 열기</button>
+        <p class="a2hs-note">버튼이 안 되면 오른쪽 아래 <b>⋯ 메뉴</b> → <b>'다른 브라우저로 열기'</b></p>
+        <button class="a2hs-btn ghost" id="a2hs-close">나중에 할게요</button>`;
+    } else if (inApp) {
+      body = `
+        <div class="a2hs-ic">🌐</div>
+        <h3>브라우저에서 열어주세요</h3>
+        <p class="a2hs-sub">앱 안의 브라우저라 홈 화면에 추가할 수 없어요.<br/>메뉴에서 <b>'다른 브라우저로 열기'</b>를 선택해 주세요.</p>
+        <button class="a2hs-btn" id="a2hs-close">알겠어요</button>`;
+    } else {
+      const steps = isIOS
+        ? ['하단 <b>공유 버튼</b> (⎙) 탭', '<b>\'홈 화면에 추가\'</b> 선택', '오른쪽 위 <b>\'추가\'</b> 탭 — 끝!']
+        : ['오른쪽 위 <b>⋮ 메뉴</b> 탭', '<b>\'홈 화면에 추가\'</b> 또는 <b>\'앱 설치\'</b> 선택', '<b>\'설치\'</b> 탭 — 끝!'];
+      body = `
+        <div class="a2hs-ic"><img src="icons/icon-192.png" alt="" width="64" height="64"/></div>
+        <h3>앱으로 설치하기</h3>
+        <p class="a2hs-sub">홈 화면에 추가하면 여행 당일<br/>앱처럼 바로 열 수 있어요.</p>
+        <button class="a2hs-btn" id="a2hs-install" hidden>홈 화면에 추가</button>
+        <p class="a2hs-note" id="a2hs-manual" hidden>버튼이 안 되면 아래 방법으로도 추가할 수 있어요</p>
+        <ol class="a2hs-steps" id="a2hs-steps">${steps.map((t, i) => `<li><span class="n">${i + 1}</span><span>${t}</span></li>`).join('')}</ol>
+        <p class="a2hs-note">앱 이름은 <b>환갑여행</b>으로 들어가요 🎂</p>
+        <button class="a2hs-btn ghost" id="a2hs-close">알겠어요</button>`;
+    }
+
+    const bg = document.createElement('div');
+    bg.className = 'a2hs-bg'; bg.id = 'a2hs';
+    bg.innerHTML = `<div class="a2hs" role="dialog" aria-modal="true" aria-label="앱 설치 안내">${body}</div>`;
+    document.body.appendChild(bg);
+    requestAnimationFrame(() => bg.classList.add('show'));
+    reflect();
+
+    const close = () => {
+      if (!inApp) { try { localStorage.setItem(SEEN_KEY, '1'); } catch {} }
+      bg.classList.remove('show');
+      setTimeout(() => bg.remove(), 350);
+    };
+    $('#a2hs-open', bg)?.addEventListener('click', () => {
+      const base = location.href.split('#')[0];
+      const ext = base + (base.includes('?') ? '&' : '?') + 'a2hs=1';
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(ext);
+    });
+    $('#a2hs-install', bg)?.addEventListener('click', doInstall);
+    $('#a2hs-close', bg)?.addEventListener('click', close);
+    bg.addEventListener('click', (e) => { if (e.target === bg) close(); });
+  }
+
+  window.addEventListener('load', () => setTimeout(show, 900));
 })();
 
 /* ---------- Weather (Open-Meteo, no key) ---------- */

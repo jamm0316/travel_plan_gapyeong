@@ -7,9 +7,15 @@
 <title>춘천 환갑여행 — 8월 22일</title>
 <meta name="description" content="엄마 아빠 환갑을 축하하는 하루. 춘천에서 보내는 8월 22일 토요일." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="환갑여행" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="styles.css?v=20260821" />
+<link rel="stylesheet" href="styles.css?v=20260821b" />
 </head>
 <body>
 
@@ -155,7 +161,6 @@
     <ul class="checklist reveal" data-list="prep">
       <li><label><input type="checkbox" /><span><strong>긴팔옷 챙기기</strong> — 27도면 쌀쌀할 수 있음</span></label></li>
       <li><label><input type="checkbox" /><span>우산 / 우비 — 강수확률 90%</span></label></li>
-      <li><label><input type="checkbox" /><span>케이크 초 &amp; 라이터</span></label></li>
       <li><label><input type="checkbox" /><span>닌텐도 &amp; 저녁 게임 준비 (펜·종이)</span></label></li>
     </ul>
   </div>
@@ -183,12 +188,12 @@
         <p>Google Sheets에서 실시간으로 체크하며 장보기</p>
         <span class="split-cta">시트 열기 ›</span>
       </a>
-      <div class="split-card">
+      <a class="split-card split-link" href="#secret">
         <p class="split-label">B팀</p>
-        <h3>🎂 케이크 픽업</h3>
-        <p>강원특별자치도 춘천시 춘천로 232 1층</p>
-        <button class="copy-btn inline" data-copy="강원특별자치도 춘천시 춘천로 232 1층">주소 복사</button>
-      </div>
+        <h3>🤫 비밀 임무</h3>
+        <p>B팀이 할 일은 시크릿 탭에 있어요</p>
+        <span class="split-cta">시크릿 열기 ›</span>
+      </a>
     </div>
 
     <h3 class="sub-title reveal">저녁 메뉴</h3>
@@ -200,13 +205,62 @@
   </div>
 </section>
 
-<!-- ===================== GAMES ===================== -->
-<section id="games" class="section">
+<!-- ===================== SECRET ===================== -->
+<section id="secret" class="section section-dark secret">
   <div class="container">
-    <h2 class="section-title reveal">저녁 게임.</h2>
-    <p class="section-lead reveal">6명 기준. 도구 없이, 혹은 닌텐도로.</p>
+    <h2 class="section-title reveal">시크릿.</h2>
+    <p class="section-lead reveal">주인공 몰래. 우리끼리만.</p>
 
-    <div class="games reveal">
+    <div class="vault reveal" id="vault">
+      <div class="vault-door" id="vault-door">
+        <div class="vault-ring"><div class="vault-ring-inner"><span class="vault-lock" aria-hidden="true">🔒</span></div></div>
+        <p class="vault-title">암호를 입력하세요</p>
+        <p class="vault-hint">네 자리 숫자 · 힌트: 그날</p>
+        <form class="pin" id="pin-form" autocomplete="off">
+          <div class="pin-dots" id="pin-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <input class="pin-input" id="pin-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4자리 암호" />
+          <div class="pin-pad" id="pin-pad" aria-hidden="true">
+            <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+            <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+            <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+            <span></span><button type="button" data-k="0">0</button><button type="button" data-k="del" aria-label="지우기">⌫</button>
+          </div>
+        </form>
+      </div>
+      <div class="vault-content" id="vault-content" hidden></div>
+    </div>
+
+    <template id="secret-template">
+      <div class="secret-inner">
+        <div class="secret-top">
+          <p class="secret-badge">🤫 주인공에게는 비밀</p>
+          <button type="button" class="secret-lock-btn" id="secret-lock">다시 잠그기</button>
+        </div>
+
+        <h3 class="secret-h">🎂 케이크</h3>
+        <p class="secret-lead">16:10 이마트에서 B팀이 빠져나와 픽업.</p>
+        <ul class="addr-list secret-addr">
+          <li class="addr">
+            <span class="addr-emoji" aria-hidden="true">🎂</span>
+            <div class="addr-body">
+              <p class="addr-name">케이크 픽업</p>
+              <p class="addr-text">강원특별자치도 춘천시 춘천로 232 1층</p>
+            </div>
+            <div class="addr-actions">
+              <a class="map-btn" href="https://map.kakao.com/link/search/%EA%B0%95%EC%9B%90%ED%8A%B9%EB%B3%84%EC%9E%90%EC%B9%98%EB%8F%84%20%EC%B6%98%EC%B2%9C%EC%8B%9C%20%EC%B6%98%EC%B2%9C%EB%A1%9C%20232" target="_blank" rel="noopener">지도</a>
+              <button class="copy-btn" data-copy="강원특별자치도 춘천시 춘천로 232 1층">복사</button>
+            </div>
+          </li>
+        </ul>
+        <ul class="checklist" data-list="secret-prep">
+          <li><label><input type="checkbox" /><span><strong>케이크 초 &amp; 라이터</strong> — 숫자 초 6·0</span></label></li>
+          <li><label><input type="checkbox" /><span>케이크 픽업 완료</span></label></li>
+        </ul>
+
+            <h3 class="secret-h">🎲 저녁 게임</h3>
+    <p class="secret-lead">6명 기준. 도구 없이, 혹은 닌텐도로.</p>
+
+    <div class="games">
       <div class="game-col">
         <h3 class="sub-title">🗣️ 도구 없이</h3>
         <ul class="checklist" data-list="games-a">
@@ -227,16 +281,11 @@
         </ul>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- ===================== PACKING ===================== -->
-<section id="packing" class="section section-dark">
-  <div class="container">
-    <h2 class="section-title reveal">챙길 것.</h2>
-    <p class="section-lead reveal">체크하면 이 기기에 저장돼요.</p>
+            <h3 class="secret-h">🎒 챙길 것</h3>
+    <p class="secret-lead">체크하면 이 기기에 저장돼요.</p>
 
-    <div class="games reveal">
+    <div class="games">
       <div class="game-col">
         <h3 class="sub-title">보미네</h3>
         <ul class="checklist" data-list="pack-bomi">
@@ -269,6 +318,8 @@
         </ul>
       </div>
     </div>
+      </div>
+    </template>
   </div>
 </section>
 
@@ -288,13 +339,12 @@
     <a href="#weather" data-nav="weather"><span class="nav-ico">🌦️</span><span class="nav-txt">날씨</span></a>
     <a href="#addresses" data-nav="addresses"><span class="nav-ico">📍</span><span class="nav-txt">주소</span></a>
     <a href="#shopping" data-nav="shopping"><span class="nav-ico">🛒</span><span class="nav-txt">장보기</span></a>
-    <a href="#games" data-nav="games"><span class="nav-ico">🎲</span><span class="nav-txt">게임</span></a>
-    <a href="#packing" data-nav="packing"><span class="nav-ico">🎒</span><span class="nav-txt">짐</span></a>
+    <a href="#secret" data-nav="secret"><span class="nav-ico">🔒</span><span class="nav-txt">시크릿</span></a>
   </div>
 </nav>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=20260821"></script>
+<script src="app.js?v=20260821b"></script>
 </body>
 </html>
