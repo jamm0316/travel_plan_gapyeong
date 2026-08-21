@@ -251,8 +251,41 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 
 
 /* ============ Secret ============ */
-.secret { background: radial-gradient(120% 80% at 50% 0%, #1a0f2e 0%, #000 60%); color: var(--fg-dark); overflow: hidden; }
-.secret .section-title { background: linear-gradient(90deg, #fff, #b79cff 60%, #ff9f0a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.secret { position: relative; background: radial-gradient(120% 80% at 50% 0%, #150b2a 0%, #04030a 60%, #000 100%); color: var(--fg-dark); overflow: hidden; }
+.secret .container { position: relative; z-index: 1; }
+.secret .vault { margin-top: 32px; }
+
+/* 은하수: 별가루 3겹이 서로 다른 속도로 대각선으로 흐르고, 펄 광택이 가끔 스쳐 지나감 */
+.galaxy { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.galaxy::before { content: ""; position: absolute; inset: -20%; transform: rotate(-18deg);
+  background: linear-gradient(90deg, transparent 30%, rgba(140,110,255,.10) 45%, rgba(255,214,150,.12) 50%, rgba(140,110,255,.10) 55%, transparent 70%);
+  filter: blur(30px); animation: nebula 18s ease-in-out infinite alternate; }
+@keyframes nebula { from { transform: rotate(-18deg) translateX(-6%); opacity: .7; } to { transform: rotate(-18deg) translateX(6%); opacity: 1; } }
+.stars { position: absolute; top: -50%; left: 0; width: 200%; height: 200%; background-repeat: repeat; opacity: .9; }
+.s1 { background-image:
+  radial-gradient(1px 1px at 12% 18%, #fff 60%, transparent 100%), radial-gradient(1px 1px at 47% 66%, #fff 60%, transparent 100%),
+  radial-gradient(1.5px 1.5px at 78% 32%, #e8dcff 60%, transparent 100%), radial-gradient(1px 1px at 31% 84%, #fff 60%, transparent 100%),
+  radial-gradient(1px 1px at 91% 79%, #ffe7c2 60%, transparent 100%), radial-gradient(1px 1px at 63% 9%, #fff 60%, transparent 100%);
+  background-size: 420px 420px; animation: drift 90s linear infinite; }
+.s2 { background-image:
+  radial-gradient(1.5px 1.5px at 22% 40%, #fff 60%, transparent 100%), radial-gradient(2px 2px at 70% 20%, #d7c6ff 60%, transparent 100%),
+  radial-gradient(1px 1px at 55% 75%, #fff 60%, transparent 100%), radial-gradient(1.5px 1.5px at 85% 60%, #fff 60%, transparent 100%),
+  radial-gradient(1px 1px at 8% 90%, #ffe7c2 60%, transparent 100%);
+  background-size: 640px 640px; opacity: .7; animation: drift 140s linear infinite, twinkle 6s ease-in-out infinite; }
+.s3 { background-image:
+  radial-gradient(2.5px 2.5px at 40% 30%, rgba(255,255,255,.9) 50%, transparent 100%), radial-gradient(2px 2px at 80% 80%, rgba(215,198,255,.9) 50%, transparent 100%),
+  radial-gradient(2px 2px at 15% 65%, rgba(255,231,194,.9) 50%, transparent 100%);
+  background-size: 900px 900px; opacity: .55; filter: blur(.3px); animation: drift 200s linear infinite reverse, twinkle 9s ease-in-out infinite 2s; }
+@keyframes drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-420px, 420px, 0); } }
+@keyframes twinkle { 0%, 100% { opacity: .45; } 50% { opacity: .95; } }
+.pearl { position: absolute; top: -20%; bottom: -20%; width: 38%; transform: skewX(-22deg) translateX(-160%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.02) 30%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.02) 70%, transparent 100%);
+  mix-blend-mode: screen; filter: blur(8px); }
+.p1 { left: 10%; animation: sweep 13s ease-in-out infinite 2s; }
+.p2 { left: 55%; width: 24%; animation: sweep 17s ease-in-out infinite 9s; }
+@keyframes sweep { 0%, 70% { transform: skewX(-22deg) translateX(-160%); opacity: 0; } 80% { opacity: 1; } 100% { transform: skewX(-22deg) translateX(260%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .galaxy *, .galaxy::before { animation: none !important; } }
+.secret .section-title { background: linear-gradient(90deg, #fff, #cbb8ff 55%, #ffd9a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .vault { position: relative; margin-top: 48px; perspective: 1400px; }
 .vault-door {
