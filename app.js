@@ -25,7 +25,7 @@ const TIMELINE = [
 /* 장소 마스터 — 좌표는 카카오맵 기준 (WGS84) */
 const PLACES = {
   lodge:   { emoji: '🏡', name: '숙소 (비안단테펜션)', addr: '강원특별자치도 춘천시 서면 금산리 477-1', lat: 37.9025010, lng: 127.7001772, kakaoId: 1506410889 },
-  dak:     { emoji: '🍗', name: '통나무집닭갈비 3호점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 663 1층', lat: 37.9302906, lng: 127.7834141, kakaoId: 565901527 },
+  dak:     { emoji: '🍗', name: '통나무집닭갈비 3호점', addr: '강원특별자치도 춘천시 신북읍 신샘밭로 663 1층', lat: 37.9302906, lng: 127.7834141, kakaoId: 565901527, trafficBuffer: 60 }, // 서울→춘천 구간 정체 여유(분)
   cafe:    { emoji: '☕', name: '카페 드 220볼트', addr: '강원특별자치도 춘천시 동내면 금촌로 107-27 1-3층', lat: 37.8569708, lng: 127.7837874, kakaoId: 184325082 },
   falls:   { emoji: '💦', name: '구곡폭포', addr: '강원특별자치도 춘천시 남산면 강촌구곡길 254', lat: 37.7970328, lng: 127.6158520, kakaoId: 8235953 },
   emart:   { emoji: '🛒', name: '이마트 춘천점', addr: '강원특별자치도 춘천시 경춘로 2353', lat: 37.8638304, lng: 127.7185711, kakaoId: 8546847 },
@@ -198,7 +198,10 @@ function updateTimeline() {
       const d = durations?.[i], dist = distances?.[i];
       if (d == null || li.classList.contains('past')) { el.hidden = true; return; }
       el.hidden = false;
-      el.innerHTML = `🚗 여기서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
+      const buf = PLACES[el.dataset.eta].trafficBuffer;
+      el.innerHTML = buf
+        ? `🚗 여기서 ${fmt(d)} · ${km(dist)} <span class="tl-eta-sep">·</span> 🚦 정체 +${fmt(buf * 60)} <span class="tl-eta-sep">→</span> 최종 <strong>약 ${fmt(d + buf * 60)}</strong> 예상`
+        : `🚗 여기서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
     });
   }
 
