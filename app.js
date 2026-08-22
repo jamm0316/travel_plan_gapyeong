@@ -55,6 +55,12 @@ function nowKST() {
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const distM = (a, b) => {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
 const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
 function toast(msg) {
@@ -163,11 +169,36 @@ function updateTimeline() {
     TIMELINE.forEach((t, i) => { if (toMin(t.start) <= m) current = i; });
   }
 
+  // 위치 추적 중이면 위치로 보정: 장소 300m 안 → 그 장소가 NOW, 아니면 아직 못 간 장소는 NOW가 될 수 없음
+  let enroute = -1;
+  const pos = window.ETA_POS;
+  if (state === 'today' && pos) {
+    const NEAR = 300;
+    let visited = [];
+    try { visited = JSON.parse(localStorage.getItem('chuncheon60:visited') || '[]'); } catch {}
+    let near = -1;
+    TIMELINE.forEach((t, i) => {
+      if (!t.place) return;
+      if (distM(pos, PLACES[t.place]) <= NEAR) { near = i; if (!visited.includes(i)) visited.push(i); }
+    });
+    try { localStorage.setItem('chuncheon60:visited', JSON.stringify(visited)); } catch {}
+    if (near >= 0) current = Math.max(current, near);
+    else {
+      // 시간상 NOW가 아직 안 가본 장소면, 그 앞의 항목으로 되돌림
+      while (current >= 0 && TIMELINE[current].place && !visited.includes(current)) current--;
+      // 다음 장소로 이동 중
+      for (let i = current + 1; i < TIMELINE.length; i++) if (TIMELINE[i].place) { enroute = i; break; }
+    }
+  }
+  PLAN.enroute = enroute;
+
   PLAN.current = state === 'today' ? current : (state === 'before' ? -1 : TIMELINE.length);
   items.forEach((li, i) => {
-    li.classList.remove('past', 'now', 'upcoming');
+    li.classList.remove('past', 'now', 'upcoming', 'enroute');
     const badge = $('.tl-badge', li);
     badge.hidden = true;
+    badge.textContent = 'NOW';
+    if (i === enroute) { li.classList.add('enroute'); badge.hidden = false; badge.textContent = '🚗 이동 중'; }
     if (state === 'after') { li.classList.add('past'); return; }
     if (state === 'before') { li.classList.add('upcoming'); return; }
     if (i < current) li.classList.add('past');
@@ -206,7 +237,7 @@ function renderPlan() {
   const originItem = TIMELINE.find((t) => t.origin);
   // 현재 일정이 장소면 "거기 있음", 아니면(출발/이동 중) "다음 장소로 이동 중"
   const curItem = TIMELINE[cur];
-  const atPlace = state === 'today' && curItem && curItem.place;
+  const atPlace = state === 'today' && curItem && curItem.place && window.ETA_POS ? true : (state === 'today' && curItem && curItem.place);
   let prevArrive = null;   // 이전 장소 도착(예상) 시각
   let prevEnd = originItem ? originItem.start : null;
   let legIdx = 0, started = false;
@@ -226,7 +257,7 @@ function renderPlan() {
     let depart;
     if (!started) {
       if (state !== 'today') depart = schedDepart;
-      else if (atPlace) depart = Math.max(now.getTime(), schedDepart);   // 현재 장소에서 예정대로 출발
+      else if (atPlace && PLAN.enroute < 0) depart = Math.max(now.getTime(), schedDepart); // 현재 장소에서 예정대로 출발
       else depart = now.getTime();                                        // 이동 중: 지금부터
     } else depart = Math.max(prevArrive, schedDepart);
     const arrive = depart + travel * 1000;
@@ -262,7 +293,7 @@ function renderPlan() {
       const i = keys.indexOf(el.dataset.eta);
       const li = el.closest('.tl-item');
       const d = durations?.[i], dist = distances?.[i];
-      if (d == null || li.classList.contains('past')) { el.hidden = true; return; }
+      if (d == null || li.classList.contains('past') || li.classList.contains('now')) { el.hidden = true; return; }
       el.hidden = false;
       el.innerHTML = `🚗 내 위치에서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
     });
@@ -292,6 +323,8 @@ function renderPlan() {
     const { latitude: lat, longitude: lng } = p.coords;
     const moved = !lastPos || Math.hypot(lat - lastPos.lat, (lng - lastPos.lng) * Math.cos(lat * Math.PI / 180)) > 0.002; // ≈200m
     lastPos = { lat, lng };
+    window.ETA_POS = lastPos;
+    updateTimeline(); renderPlan();
     fetchEta(moved);
   }
   function onErr(e) {
@@ -316,6 +349,7 @@ function renderPlan() {
     try { localStorage.removeItem(KEY); } catch {}
     if (watchId != null) navigator.geolocation.clearWatch(watchId);
     clearInterval(timer); watchId = null; timer = null; lastPos = null;
+    window.ETA_POS = null; updateTimeline();
     render(null, null);
     PLAN.fromMe = null; renderPlan();
   }
