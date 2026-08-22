@@ -776,6 +776,17 @@ renderAddresses();
 renderCountdown();
 updateTimeline();
 loadWeather();
-setInterval(() => { updateTimeline(); renderPlan(); }, 30 * 1000);
+/* ---------- 시크릿 타임 테두리 (여행 당일 16:40–17:40, ?secret=1로 미리보기) ---------- */
+function updateSecretTime() {
+  const el = $('#secret-time'); if (!el) return;
+  const now = nowKST();
+  const m = now.getHours() * 60 + now.getMinutes();
+  const forced = new URLSearchParams(location.search).get('secret') === '1';
+  const on = forced || (ymd(now) === TRIP_DATE && m >= toMin('16:40') && m < toMin('17:40'));
+  if (on && el.hidden) { el.hidden = false; el.classList.add('show'); }
+  if (!on && !el.hidden) { el.hidden = true; el.classList.remove('show'); }
+}
+updateSecretTime();
+setInterval(() => { updateTimeline(); renderPlan(); updateSecretTime(); }, 30 * 1000);
 setInterval(renderCountdown, 1000);
 setInterval(loadWeather, 10 * 60 * 1000);
