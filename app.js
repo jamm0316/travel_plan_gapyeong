@@ -17,7 +17,7 @@ const TIMELINE = [
   { start: '10:50', place: 'dak', title: '통나무집닭갈비 3호점', note: '11:00 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', place: 'cafe', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
   { start: '14:10', place: 'falls', cancelled: '우천 취소', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
-  { start: '14:40', end: '14:50', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
+  { start: '14:40', end: '17:10', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
   { start: '17:10', end: '17:30', place: 'lodge', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
   { start: '19:00', label: '저녁', title: '삼겹살 🥓', note: '숙소에서 구워 먹어요' },
 ];
