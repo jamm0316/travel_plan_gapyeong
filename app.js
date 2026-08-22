@@ -16,8 +16,8 @@ const TIMELINE = [
   { start: '09:10', origin: { lat: 37.4996, lng: 126.9284 }, title: '신대방삼거리 출발', note: '서울양양고속도로 → 남춘천IC → 신북 샘밭 (토요일 오전 기준 약 1시간 40~50분)' },
   { start: '10:50', place: 'dak', title: '통나무집닭갈비 3호점', note: '11:00 오픈. <strong>대기 30분 넘으면 바로 별당막국수로 전환 (15분 거리)</strong>' },
   { start: '12:30', end: '12:55', place: 'cafe', title: '카페 드 220볼트', note: '커피 한 잔, 숨 고르기' },
-  { start: '14:10', place: 'falls', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
-  { start: '16:10', end: '16:20', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
+  { start: '14:10', place: 'falls', cancelled: '우천 취소', title: '구곡폭포', note: '카누 대신. 입구에서 폭포까지 약 20분 산책' },
+  { start: '14:40', end: '14:50', place: 'emart', title: '이마트 춘천점', note: '저녁에 먹을 것 장보기', actions: [{ label: '🛒 장보기 시트 바로가기', href: 'https://docs.google.com/spreadsheets/d/1fZlDQ2KtcwuzCUQaptH2lqLO0msNBpkEQGia3m9Qmh4/edit?usp=sharing' }] },
   { start: '17:10', end: '17:30', place: 'lodge', title: '숙소 도착', note: '짐 풀고 해질녘 의암호 산책' },
   { start: '19:00', label: '저녁', title: '삼겹살 🥓', note: '숙소에서 구워 먹어요' },
 ];
@@ -136,11 +136,11 @@ function renderTimeline() {
   list.innerHTML = TIMELINE.map((t, i) => {
     const time = t.label ? t.label : (t.end ? `${t.start} – ${t.end}` : t.start);
     return `
-      <li class="tl-item" data-i="${i}">
+      <li class="tl-item${t.cancelled ? ' cancelled' : ''}" data-i="${i}">
         <span class="tl-dot" aria-hidden="true"></span>
         <div class="tl-card">
           <p class="tl-time">${time}</p>
-          <h3 class="tl-title">${t.title}<span class="tl-badge" hidden>NOW</span></h3>
+          <h3 class="tl-title">${t.title}${t.cancelled ? `<span class="tl-cancel">${t.cancelled}</span>` : ''}<span class="tl-badge" hidden>NOW</span></h3>
           ${t.note ? `<p class="tl-note">${t.note}</p>` : ''}
           ${t.place ? `<p class="tl-addr">${PLACES[t.place].addr}</p><p class="tl-plan" data-plan="${t.place}" hidden></p><p class="tl-eta" data-eta="${t.place}" hidden></p>` : ''}
           ${(t.place || t.actions) ? `<div class="tl-actions">${t.place ? navButtons(PLACES[t.place]) : ''}${(t.actions || []).map((a) => `<a class="tl-btn" href="${a.href}" target="_blank" rel="noopener">${a.label}</a>`).join('')}</div>` : ''}
@@ -166,7 +166,7 @@ function updateTimeline() {
   let current = -1;
   if (state === 'today') {
     const m = now.getHours() * 60 + now.getMinutes();
-    TIMELINE.forEach((t, i) => { if (toMin(t.start) <= m) current = i; });
+    TIMELINE.forEach((t, i) => { if (!t.cancelled && toMin(t.start) <= m) current = i; });
   }
 
   // 위치 추적 중이면 위치로 보정: 장소 300m 안 → 그 장소가 NOW, 아니면 아직 못 간 장소는 NOW가 될 수 없음
@@ -178,16 +178,16 @@ function updateTimeline() {
     try { visited = JSON.parse(localStorage.getItem('chuncheon60:visited') || '[]'); } catch {}
     let near = -1;
     TIMELINE.forEach((t, i) => {
-      if (!t.place) return;
+      if (!t.place || t.cancelled) return;
       if (distM(pos, PLACES[t.place]) <= NEAR) { near = i; if (!visited.includes(i)) visited.push(i); }
     });
     try { localStorage.setItem('chuncheon60:visited', JSON.stringify(visited)); } catch {}
     if (near >= 0) current = Math.max(current, near);
     else {
       // 시간상 NOW가 아직 안 가본 장소면, 그 앞의 항목으로 되돌림
-      while (current >= 0 && TIMELINE[current].place && !visited.includes(current)) current--;
+      while (current >= 0 && (TIMELINE[current].cancelled || (TIMELINE[current].place && !visited.includes(current)))) current--;
       // 다음 장소로 이동 중
-      for (let i = current + 1; i < TIMELINE.length; i++) if (TIMELINE[i].place) { enroute = i; break; }
+      for (let i = current + 1; i < TIMELINE.length; i++) if (TIMELINE[i].place && !TIMELINE[i].cancelled) { enroute = i; break; }
     }
   }
   PLAN.enroute = enroute;
@@ -204,6 +204,7 @@ function updateTimeline() {
     if (i < current) li.classList.add('past');
     else if (i === current) { li.classList.add('now'); badge.hidden = false; }
     else li.classList.add('upcoming');
+    if (li.classList.contains('cancelled')) { li.classList.remove('now', 'enroute', 'upcoming'); badge.hidden = true; }
   });
 }
 
@@ -212,7 +213,7 @@ const PLAN = { legs: null, fromMe: null };
 (async function loadLegs() {
   // 경로 순서: 출발지(신대방삼거리) → 장소가 있는 일정 순서대로
   const origin = TIMELINE.find((t) => t.origin)?.origin;
-  const stops = TIMELINE.filter((t) => t.place).map((t) => PLACES[t.place]);
+  const stops = TIMELINE.filter((t) => t.place && !t.cancelled).map((t) => PLACES[t.place]);
   if (!origin || !stops.length) return;
   const pts = [origin, ...stops].map((p) => `${p.lng},${p.lat}`).join(';');
   try {
@@ -244,6 +245,7 @@ function renderPlan() {
   TIMELINE.forEach((t, i) => {
     if (!t.place) return;
     const el = $('.tl-plan', items[i]);
+    if (t.cancelled) { el.hidden = true; return; }
     const leg = PLAN.legs[legIdx++];
     const buf = (PLACES[t.place].trafficBuffer || 0) * 60;
     // 이미 도착한(지난 또는 현재) 장소는 표시 안 함
@@ -293,7 +295,7 @@ function renderPlan() {
       const i = keys.indexOf(el.dataset.eta);
       const li = el.closest('.tl-item');
       const d = durations?.[i], dist = distances?.[i];
-      if (d == null || li.classList.contains('past') || li.classList.contains('now')) { el.hidden = true; return; }
+      if (d == null || li.classList.contains('past') || li.classList.contains('now') || li.classList.contains('cancelled')) { el.hidden = true; return; }
       el.hidden = false;
       el.innerHTML = `🚗 내 위치에서 <strong>${fmt(d)}</strong> · ${km(dist)}`;
     });

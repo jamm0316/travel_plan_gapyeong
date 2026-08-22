@@ -185,6 +185,11 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 .tl-item.now .tl-dot { background: var(--fg); border-color: var(--fg); box-shadow: 0 0 0 6px rgba(0,0,0,.08); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 6px rgba(0,0,0,.08); } 50% { box-shadow: 0 0 0 12px rgba(0,0,0,.02); } }
 .tl-badge[hidden] { display: none; }
+.tl-item.cancelled { opacity: .5; }
+.tl-item.cancelled .tl-title { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: #ff453a; }
+.tl-cancel, .place-cancel { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: #ff453a; padding: 3px 9px; border-radius: 999px; margin-left: 10px; vertical-align: middle; text-decoration: none; letter-spacing: 0; }
+.place-cancel { font-size: 14px; padding: 5px 12px; }
+.tl-item.cancelled .tl-actions { display: none; }
 .tl-item.enroute .tl-card { padding: 20px 22px; border: 2px dashed var(--accent); border-radius: 18px; margin-left: -4px; }
 .tl-item.enroute .tl-badge { background: var(--accent); text-transform: none; letter-spacing: 0; }
 .tl-item.enroute .tl-title { font-weight: 800; }
