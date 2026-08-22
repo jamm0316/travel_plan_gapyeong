@@ -190,9 +190,20 @@ function updateTimeline() {
       for (let i = current + 1; i < TIMELINE.length; i++) if (TIMELINE[i].place && !TIMELINE[i].cancelled) { enroute = i; break; }
     }
   }
+  // 위치 없이 시간만으로: 종료 시각이 지났으면 간 것으로 보고(past), 출발/이동 항목 중에는 다음 장소를 '이동 중'으로
+  let doneThrough = -1; // 이 인덱스까지는 past
+  if (state === 'today' && !pos && current >= 0) {
+    const m = now.getHours() * 60 + now.getMinutes();
+    const cur = TIMELINE[current];
+    const finished = !!cur.end && toMin(cur.end) <= m;
+    if (finished || !cur.place) {
+      for (let i = current + 1; i < TIMELINE.length; i++) if (TIMELINE[i].place && !TIMELINE[i].cancelled) { enroute = i; break; }
+    }
+    if (finished) { doneThrough = current; current = -1; }
+  }
   PLAN.enroute = enroute;
+  PLAN.current = state === 'today' ? (doneThrough >= 0 ? doneThrough : current) : (state === 'before' ? -1 : TIMELINE.length);
 
-  PLAN.current = state === 'today' ? current : (state === 'before' ? -1 : TIMELINE.length);
   items.forEach((li, i) => {
     li.classList.remove('past', 'now', 'upcoming', 'enroute');
     const badge = $('.tl-badge', li);
@@ -201,7 +212,7 @@ function updateTimeline() {
     if (i === enroute) { li.classList.add('enroute'); badge.hidden = false; badge.textContent = '🚗 이동 중'; }
     if (state === 'after') { li.classList.add('past'); return; }
     if (state === 'before') { li.classList.add('upcoming'); return; }
-    if (i < current) li.classList.add('past');
+    if (i < current || i <= doneThrough) li.classList.add('past');
     else if (i === current) { li.classList.add('now'); badge.hidden = false; }
     else li.classList.add('upcoming');
     if (li.classList.contains('cancelled')) { li.classList.remove('now', 'enroute', 'upcoming'); badge.hidden = true; }
