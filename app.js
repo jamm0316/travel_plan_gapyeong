@@ -422,6 +422,19 @@ document.addEventListener('click', (e) => {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) close(); });
 })();
 
+/* ---------- hero CTA: 오늘이면 NOW 항목으로, 아니면 첫 항목으로 ---------- */
+(function initHeroCta() {
+  const cta = $('.hero-cta'); if (!cta) return;
+  cta.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = $('.tl-item.now') || $('.tl-item.enroute') || $('.tl-item');
+    if (!target) { location.hash = '#timeline'; return; }
+    const top = target.getBoundingClientRect().top + window.scrollY - Math.max(24, window.innerHeight * 0.18);
+    window.scrollTo({ top, behavior: 'smooth' });
+    history.replaceState(null, '', '#timeline');
+  });
+})();
+
 /* ---------- Checklists (localStorage) ---------- */
 function initChecklists(root = document) {
   $$('.checklist[data-list]', root).forEach((ul) => {
