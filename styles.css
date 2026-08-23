@@ -513,3 +513,39 @@ button.tile { border: 0; font: inherit; color: inherit; width: 100%; -webkit-tap
 .secret-time.show { animation: st-in 2.4s var(--ease) both; }
 @keyframes st-in { from { opacity: 0; } to { opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .secret-time i { animation: none !important; } }
+
+/* ============ 여행 / 추억 모드 ============ */
+.mode-switch { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 150;
+  display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; gap: 0;
+  background: rgba(255,255,255,.72); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(0,0,0,.08); box-shadow: 0 10px 40px rgba(0,0,0,.15); }
+.mode-switch button { position: relative; z-index: 1; width: 84px; padding: 8px 0; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: #3a3a3c; border-radius: 999px; transition: color .3s; }
+.mode-switch button[aria-selected="true"] { color: #fff; }
+.mode-thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px; background: #1d1d1f; transition: transform .45s var(--ease), background .45s; }
+.mode-switch[data-mode="memory"] .mode-thumb { transform: translateX(100%); background: linear-gradient(120deg, #ff7a3d, #b47cff); }
+[data-trip][hidden], [data-memory][hidden] { display: none !important; }
+body[data-mode="memory"] .hero { min-height: 70vh; }
+
+/* ============ 추억 챕터 ============ */
+.mem { background: #000; color: #fff; }
+.mem-cover { position: relative; height: min(92vh, 820px); overflow: hidden; }
+.mem-cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); will-change: transform; }
+.mem-cover-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.85) 100%); }
+.mem-cover-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 24px 44px; width: min(980px, 100%); margin: 0 auto; }
+.mem-chip { display: inline-block; padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--tone) 80%, #000); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.mem-title { font-size: clamp(38px, 8vw, 76px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; margin-top: 12px; text-shadow: 0 6px 30px rgba(0,0,0,.4); }
+.mem-sub { font-size: clamp(16px, 2.4vw, 22px); color: rgba(255,255,255,.82); margin-top: 8px; font-weight: 500; }
+.mem-body { padding: 26px 0 64px; background: linear-gradient(180deg, #000, #0a0a0c); }
+.mem-memo { width: min(980px, 100% - 48px); margin: 22px auto 0; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.75); }
+.mem-memo::before { content: ""; display: block; width: 36px; height: 3px; border-radius: 3px; background: var(--tone); margin-bottom: 14px; }
+
+.strip { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; cursor: grab; }
+.strip::-webkit-scrollbar { display: none; }
+.strip-track { display: flex; gap: 10px; width: max-content; padding: 0 24px; }
+.strip-item { flex: 0 0 auto; height: min(56vh, 440px); margin: 0; }
+.strip-item img { height: 100%; width: auto; display: block; border-radius: 14px; background: #111; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
+@media (max-width: 600px) { .strip-item { height: 46vh; } .strip-track { padding: 0 18px; } .mem-cover { height: 78vh; } }
+
+.mem-end { background: #000; color: #fff; text-align: center; padding: 90px 24px 80px; }
+.mem-end-title { font-size: clamp(30px, 6vw, 52px); font-weight: 800; letter-spacing: -0.04em; background: linear-gradient(90deg, #ffb347, #ff6b9d, #b47cff, #5ac8fa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mem-end-sub { color: #86868b; margin-top: 12px; font-size: 15px; }

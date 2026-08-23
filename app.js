@@ -117,6 +117,11 @@ function fmtDiff(ms) {
 function renderCountdown() {
   const el = $('#countdown');
   const now = nowKST();
+  if (document.body.dataset.mode === 'memory') {
+    const d = Math.round((new Date(`${ymd(now)}T00:00:00+09:00`) - new Date(`${TRIP_DATE}T00:00:00+09:00`)) / 86400000);
+    el.innerHTML = d > 0 ? `<span class="cd">그날로부터 <strong>D+${d}</strong></span>` : '<span class="cd"><strong>오늘</strong></span>';
+    return;
+  }
   const real = new Date();
   const lastTrip = new Date(`${TRIP_DATE}T${DEPARTURES[DEPARTURES.length - 1].time}:00+09:00`);
   if (ymd(now) > TRIP_DATE || (ymd(now) === TRIP_DATE && real > lastTrip && !SIM_TIME)) {
@@ -420,13 +425,144 @@ document.addEventListener('click', (e) => {
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); }, { once: true });
 });
 
+/* ---------- 추억 모드: 챕터 데이터 ---------- */
+const MEMORY = [
+  { id: 'dak', emoji: '🍗', time: '10:50', title: '통나무집닭갈비', sub: '춘천의 시작은 역시 닭갈비', tone: '#ff7a3d',
+    memo: '대기 없이 들어가 치즈까지 얹었다. 마지막 볶음밥은 국룰.',
+    cover: 'images/memory/dak/01-dakgalbi.jpg',
+    photos: ['images/memory/dak/02-table.jpg', 'images/memory/dak/03-bokkeumbap.jpg', 'images/memory/dak/01-dakgalbi.jpg'] },
+  { id: 'cafe', emoji: '☕', time: '12:30', title: '카페 드 220볼트', sub: '빨간 문 앞에서', tone: '#e0564e',
+    memo: '커피보다 오래 머문 건 빨간 문 앞. 셜록이도 한 컷.',
+    cover: 'images/memory/cafe/04-reddoor-all.jpg',
+    photos: ['images/memory/cafe/01-three.jpg', 'images/memory/cafe/02-reddoor.jpg', 'images/memory/cafe/03-reddoor-three.jpg', 'images/memory/cafe/04-reddoor-all.jpg'] },
+  { id: 'emart', emoji: '🛒', time: '14:40', title: '이마트 춘천점', sub: '저녁거리 고르기', tone: '#ffc107',
+    memo: '포도는 아빠가 골랐다. 한 명은 슬쩍 빠져나가 케이크를 찾으러.',
+    cover: 'images/memory/emart/02-grapes.jpg',
+    photos: ['images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
+  { id: 'dinner', emoji: '🥓', time: '저녁', title: '삼겹살, 그리고 케이크', sub: '숙소 마당에서', tone: '#b47cff',
+    memo: '연기 속에서 구운 고기, 60이 적힌 케이크, 그림 맞히기와 추억의 뽑기판.',
+    cover: 'images/memory/dinner/01-grill.jpg',
+    photos: ['images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
+];
+
+function renderMemory() {
+  const root = $('#memory-root'); if (!root || root.dataset.built) return;
+  root.innerHTML = MEMORY.map((c, idx) => `
+    <section id="m-${c.id}" class="mem" style="--tone:${c.tone}">
+      <div class="mem-cover">
+        <img class="mem-cover-img" src="${c.cover}" alt="${c.title}" loading="${idx === 0 ? 'eager' : 'lazy'}" />
+        <div class="mem-cover-shade"></div>
+        <div class="mem-cover-text">
+          <p class="mem-kicker"><span class="mem-chip">${c.emoji} ${c.time}</span></p>
+          <h2 class="mem-title">${c.title}</h2>
+          <p class="mem-sub">${c.sub}</p>
+        </div>
+      </div>
+      <div class="mem-body">
+        <div class="strip" data-strip aria-label="${c.title} 사진">
+          <div class="strip-track">
+            ${c.photos.map((src) => `<figure class="strip-item"><img src="${src}" alt="${c.title}" loading="lazy" /></figure>`).join('')}
+          </div>
+        </div>
+        <p class="mem-memo">${c.memo}</p>
+      </div>
+    </section>`).join('') + `
+    <section class="mem-end">
+      <p class="mem-end-title">다시, 고마웠어요.</p>
+      <p class="mem-end-sub">2026. 8. 22. 춘천 · 보미네 & 소영이네 & 셜록이</p>
+    </section>`;
+  root.dataset.built = '1';
+  initStrips();
+  initNav();
+}
+
+/* 사진 스트립: 손 안 대면 오른쪽으로 천천히 흐르고, 만지면 멈추고 직접 넘김 */
+function initStrips() {
+  $$('[data-strip]').forEach((strip) => {
+    const track = $('.strip-track', strip);
+    // 끊김 없는 루프를 위해 복제
+    track.innerHTML += track.innerHTML;
+    let paused = false, visible = false, raf = null, resumeTimer = null;
+    let pos = 0;               // 소수 누적 위치 (scrollLeft는 정수로 반올림되므로 따로 관리)
+    const speed = 0.4;         // px/frame ≈ 24px/s
+    const half = () => track.scrollWidth / 2;
+    const step = () => {
+      if (!paused && visible) {
+        pos += speed;
+        if (pos >= half()) pos -= half();
+        strip.scrollLeft = pos;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    const pause = () => { paused = true; clearTimeout(resumeTimer); };
+    const resume = () => { clearTimeout(resumeTimer); resumeTimer = setTimeout(() => { pos = strip.scrollLeft; paused = false; }, 2500); };
+    strip.addEventListener('pointerdown', pause);
+    strip.addEventListener('pointerup', resume);
+    strip.addEventListener('pointercancel', resume);
+    strip.addEventListener('mouseenter', pause);
+    strip.addEventListener('mouseleave', resume);
+    strip.addEventListener('touchstart', pause, { passive: true });
+    strip.addEventListener('touchend', resume, { passive: true });
+    strip.addEventListener('scroll', () => {
+      if (!paused) return;
+      const h = half();
+      if (strip.scrollLeft >= h) strip.scrollLeft -= h;
+      else if (strip.scrollLeft <= 0) strip.scrollLeft += h;
+      pos = strip.scrollLeft;
+    }, { passive: true });
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible && !raf) raf = requestAnimationFrame(step); }, { threshold: 0.1 }).observe(strip);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) paused = true;
+  });
+}
+
+/* 커버 패럴랙스 */
+(function initParallax() {
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => {
+      $$('.mem-cover').forEach((cv) => {
+        const r = cv.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;
+        const p = (r.top + r.height / 2 - innerHeight / 2) / innerHeight; // -1..1
+        $('.mem-cover-img', cv).style.transform = `translateY(${p * -12}%) scale(1.15)`;
+      });
+      ticking = false;
+    });
+  }, { passive: true });
+})();
+
+/* ---------- 여행 / 추억 모드 ---------- */
+(function initMode() {
+  const KEY = 'chuncheon60:mode';
+  const sw = $('.mode-switch'); if (!sw) return;
+  const btns = $$('button', sw);
+  function apply(mode, { scroll = false } = {}) {
+    document.body.dataset.mode = mode;
+    $$('[data-trip]').forEach((el) => { el.hidden = mode !== 'trip'; });
+    $$('[data-memory]').forEach((el) => { el.hidden = mode !== 'memory'; });
+    btns.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
+    sw.dataset.mode = mode;
+    if (mode === 'memory') renderMemory();
+    renderCountdown();
+    try { localStorage.setItem(KEY, mode); } catch {}
+    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  btns.forEach((b) => b.addEventListener('click', () => { if (document.body.dataset.mode !== b.dataset.mode) apply(b.dataset.mode, { scroll: true }); }));
+  let mode = null;
+  try { mode = localStorage.getItem(KEY); } catch {}
+  if (location.hash.startsWith('#m-')) mode = 'memory';
+  if (!mode) mode = ymd(nowKST()) > TRIP_DATE ? 'memory' : 'trip';
+  apply(mode);
+})();
+
 /* ---------- Gallery lightbox ---------- */
 (function initLightbox() {
   const lb = $('#lightbox'); if (!lb) return;
   const img = $('img', lb);
   const close = () => { lb.hidden = true; img.src = ''; document.body.style.overflow = ''; };
   document.addEventListener('click', (e) => {
-    const src = e.target.closest('.gallery img');
+    const src = e.target.closest('.gallery img, .strip img');
     if (src) { img.src = src.src; img.alt = src.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; return; }
     if (e.target.closest('#lightbox')) close();
   });
@@ -754,7 +890,9 @@ async function loadWeather() {
 }
 
 /* ---------- Bottom nav active state ---------- */
-(function initNav() {
+let navIO = null;
+function initNav() {
+  if (navIO) navIO.disconnect();
   const links = $$('.bottom-nav a');
   const map = new Map(links.map((a) => [a.dataset.nav, a]));
   const sections = [...map.keys()].map((id) => document.getElementById(id)).filter(Boolean);
@@ -768,7 +906,9 @@ async function loadWeather() {
     });
   }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
   sections.forEach((s) => io.observe(s));
-})();
+  navIO = io;
+}
+initNav();
 
 /* ---------- Boot ---------- */
 renderTimeline();

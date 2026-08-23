@@ -15,18 +15,28 @@
 <meta name="apple-mobile-web-app-title" content="환갑여행" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="styles.css?v=20260822s" />
+<link rel="stylesheet" href="styles.css?v=20260823a" />
 </head>
 <body>
+
+<!-- ===================== MODE SWITCH ===================== -->
+<div class="mode-switch" role="tablist" aria-label="여행 / 추억">
+  <button type="button" role="tab" data-mode="trip" aria-selected="true">여행</button>
+  <button type="button" role="tab" data-mode="memory" aria-selected="false">추억</button>
+  <span class="mode-thumb" aria-hidden="true"></span>
+</div>
 
 <!-- ===================== HERO ===================== -->
 <header id="top" class="hero">
   <div class="hero-inner reveal">
     <p class="eyebrow">2026. 8. 22. 토요일 · 강원 춘천</p>
-    <h1 class="hero-title">환갑,<br/>춘천에서.</h1>
-    <p class="hero-sub">예순 번의 여름을 지나온 두 분께.<br class="br-m"/>닭갈비와 폭포와 호수, 그리고 우리.</p>
+    <h1 class="hero-title" data-trip>환갑,<br/>춘천에서.</h1>
+    <h1 class="hero-title" data-memory hidden>그날,<br/>춘천.</h1>
+    <p class="hero-sub" data-trip>예순 번의 여름을 지나온 두 분께.<br class="br-m"/>닭갈비와 폭포와 호수, 그리고 우리.</p>
+    <p class="hero-sub" data-memory hidden>2026년 8월 22일. <br class="br-m"/>여섯 명과 셜록이, 하루치의 기억.</p>
     <div class="hero-countdown" id="countdown" aria-live="polite"></div>
-    <a class="hero-cta" href="#timeline">오늘의 일정 보기 <span aria-hidden="true">›</span></a>
+    <a class="hero-cta" href="#timeline" data-trip>오늘의 일정 보기 <span aria-hidden="true">›</span></a>
+    <a class="hero-cta" href="#m-dak" data-memory hidden>첫 장면부터 보기 <span aria-hidden="true">›</span></a>
   </div>
   <div class="hero-glow" aria-hidden="true"></div>
   <div class="scroll-hint" aria-hidden="true"><span></span></div>
@@ -35,7 +45,7 @@
 <main>
 
 <!-- ===================== OVERVIEW ===================== -->
-<section id="overview" class="section">
+<section id="overview" class="section" data-trip>
   <div class="container">
     <h2 class="section-title reveal">하루의 시작.</h2>
     <p class="section-lead reveal">두 집이 각자 출발해서 춘천에서 만나요.</p>
@@ -71,7 +81,7 @@
 </section>
 
 <!-- ===================== PLACES ===================== -->
-<section id="places" class="section section-dark">
+<section id="places" class="section section-dark" data-trip>
   <div class="container">
     <h2 class="section-title reveal">오늘 가는 곳.</h2>
     <p class="section-lead reveal">세 장면. 맛있고, 시원하고, 달콤한.</p>
@@ -123,7 +133,7 @@
 </section>
 
 <!-- ===================== TIMELINE ===================== -->
-<section id="timeline" class="section">
+<section id="timeline" class="section" data-trip>
   <div class="container">
     <h2 class="section-title reveal">타임라인.</h2>
     <p class="section-lead reveal">
@@ -140,7 +150,7 @@
 </section>
 
 <!-- ===================== WEATHER ===================== -->
-<section id="weather" class="section section-dark">
+<section id="weather" class="section section-dark" data-trip>
   <div class="container">
     <h2 class="section-title reveal">날씨.</h2>
     <p class="section-lead reveal">춘천 실시간 날씨와 토요일 예보.</p>
@@ -173,7 +183,7 @@
 </section>
 
 <!-- ===================== ADDRESSES ===================== -->
-<section id="addresses" class="section">
+<section id="addresses" class="section" data-trip>
   <div class="container">
     <h2 class="section-title reveal">주소록.</h2>
     <p class="section-lead reveal">복사해서 내비에 붙여넣기만 하면 끝.</p>
@@ -182,7 +192,7 @@
 </section>
 
 <!-- ===================== LODGE ===================== -->
-<section id="lodge" class="section">
+<section id="lodge" class="section" data-trip>
   <div class="container">
     <h2 class="section-title reveal">숙소 정보.</h2>
     <p class="section-lead reveal">비안단테 춘천 한옥펜션. 알아두면 편한 것들.</p>
@@ -243,7 +253,7 @@
 </section>
 
 <!-- ===================== SHOPPING ===================== -->
-<section id="shopping" class="section section-dark">
+<section id="shopping" class="section section-dark" data-trip>
   <div class="container">
     <h2 class="section-title reveal">장보기.</h2>
     <p class="section-lead reveal">14:40, 이마트 춘천점. 저녁거리 장보기.</p>
@@ -266,7 +276,7 @@
 </section>
 
 <!-- ===================== SECRET ===================== -->
-<section id="secret" class="section section-dark secret">
+<section id="secret" class="section section-dark secret" data-trip>
   <div class="galaxy" aria-hidden="true"><i class="stars s1"></i><i class="stars s2"></i><i class="stars s3"></i><i class="pearl p1"></i><i class="pearl p2"></i></div>
   <div class="container">
     <h2 class="section-title reveal">시크릿.</h2>
@@ -379,6 +389,9 @@
   </div>
 </section>
 
+<!-- ===================== MEMORY ===================== -->
+<div id="memory-root" data-memory hidden></div>
+
 <footer class="footer">
   <p class="footer-title">생신 축하드려요. 🎂</p>
   <p class="footer-sub">2026. 8. 22. 춘천 · 보미네 & 소영이네</p>
@@ -388,7 +401,7 @@
 
 <!-- ===================== BOTTOM NAV ===================== -->
 <nav class="bottom-nav" aria-label="섹션 이동">
-  <div class="bottom-nav-inner">
+  <div class="bottom-nav-inner" data-trip>
     <a href="#overview" data-nav="overview"><span class="nav-ico">🧭</span><span class="nav-txt">기본</span></a>
     <a href="#places" data-nav="places"><span class="nav-ico">📷</span><span class="nav-txt">장소</span></a>
     <a href="#timeline" data-nav="timeline"><span class="nav-ico">⏰</span><span class="nav-txt">일정</span></a>
@@ -398,12 +411,18 @@
     <a href="#shopping" data-nav="shopping"><span class="nav-ico">🛒</span><span class="nav-txt">장보기</span></a>
     <a href="#secret" data-nav="secret"><span class="nav-ico">🔒</span><span class="nav-txt">시크릿</span></a>
   </div>
+  <div class="bottom-nav-inner" data-memory hidden>
+    <a href="#m-dak" data-nav="m-dak"><span class="nav-ico">🍗</span><span class="nav-txt">통나무집</span></a>
+    <a href="#m-cafe" data-nav="m-cafe"><span class="nav-ico">☕</span><span class="nav-txt">220볼트</span></a>
+    <a href="#m-emart" data-nav="m-emart"><span class="nav-ico">🛒</span><span class="nav-txt">이마트</span></a>
+    <a href="#m-dinner" data-nav="m-dinner"><span class="nav-ico">🥓</span><span class="nav-txt">삼겹살</span></a>
+  </div>
 </nav>
 
 <div class="secret-time" id="secret-time" aria-hidden="true" hidden><i class="st-aurora"></i><i class="st-blob b1"></i><i class="st-blob b2"></i><i class="st-blob b3"></i><i class="st-blob b4"></i><i class="st-sheen"></i><i class="st-sparkle s1"></i><i class="st-sparkle s2"></i></div>
 <div class="lightbox" id="lightbox" hidden><img alt="" /><button type="button" class="lightbox-close" aria-label="닫기">✕</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=20260822s"></script>
+<script src="app.js?v=20260823a"></script>
 </body>
 </html>
