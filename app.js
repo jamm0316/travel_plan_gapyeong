@@ -442,8 +442,8 @@ const MEMORY = [
     photos: ['images/memory/emart/00-cover-cart.jpg', 'images/memory/emart/05-rain-traffic.jpg', 'images/memory/emart/04-walk.jpg', 'images/memory/emart/03-veggies.jpg', 'images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
   { id: 'dinner', emoji: '🥓', time: '저녁', title: '삼겹살, 그리고 케이크', sub: '숙소 마당에서', tone: '#b47cff',
     memo: '연기 속에서 구운 고기, 60이 적힌 케이크, 그림 맞히기와 추억의 뽑기판. 그리고 단체 티셔츠.',
-    cover: 'images/memory/dinner/00-cover-family.jpg',
-    photos: ['images/memory/dinner/00-cover-family.jpg', 'images/memory/dinner/07-grill-three.jpg', 'images/memory/dinner/08-yard.jpg', 'images/memory/dinner/09-balloons.jpg', 'images/memory/dinner/06-table.jpg', 'images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
+    cover: 'images/memory/dinner/00-cover-group.jpg',
+    photos: ['images/memory/dinner/00-cover-group.jpg', 'images/memory/dinner/07-grill-three.jpg', 'images/memory/dinner/08-yard.jpg', 'images/memory/dinner/09-balloons.jpg', 'images/memory/dinner/06-table.jpg', 'images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
 ];
 
 // 세로 사진 목록 (레이아웃을 로드 전에 고정하기 위한 비율 정보)
