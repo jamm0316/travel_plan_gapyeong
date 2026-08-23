@@ -43,6 +43,7 @@ const navButtons = (p, { dark = false } = {}) => `
 /* ---------- 유틸 ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+let navIO = null; // 하단 네비 IntersectionObserver (initNav에서 설정)
 
 // 디버그: ?t=HH:MM 으로 여행 당일 특정 시각을 시뮬레이션
 const SIM_TIME = new URLSearchParams(location.search).get('t');
@@ -479,45 +480,65 @@ function renderMemory() {
   initNav();
 }
 
-/* 사진 스트립: 손 안 대면 오른쪽으로 천천히 흐르고, 만지면 멈추고 직접 넘김 */
+/* 사진 스트립: transform 기반 무한 흐름. 손대면 멈추고 드래그로 넘김(관성 포함), 탭하면 크게 */
 function initStrips() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   $$('[data-strip]').forEach((strip) => {
     const track = $('.strip-track', strip);
-    // 끊김 없는 루프를 위해 복제
     const count = track.children.length;
-    track.innerHTML += track.innerHTML;                      // 2벌 복제 → 끊김 없는 루프
-    const firstB = () => track.children[count];              // 두 번째 벌의 첫 사진
-    let paused = false, visible = false, raf = null, resumeTimer = null;
-    let pos = 0;               // 소수 누적 위치 (scrollLeft는 정수로 반올림되므로 따로 관리)
-    const speed = 0.4;         // px/frame ≈ 24px/s
-    // 반복 주기 = 첫 사진 → 복제본 첫 사진까지의 거리 (좌우 패딩 때문에 scrollWidth/2 와 다름)
-    const half = () => firstB().offsetLeft - track.children[0].offsetLeft;
-    const step = () => {
-      if (!paused && visible) {
-        pos += speed;
-        if (pos >= half()) pos -= half();
-        strip.scrollLeft = pos;
+    track.innerHTML += track.innerHTML;                       // 2벌 → 끊김 없는 루프
+    let period = 0;                                           // 한 벌의 폭 (첫 사진 → 복제본 첫 사진)
+    const measure = () => { period = track.children[count].offsetLeft - track.children[0].offsetLeft; };
+    measure();
+    new ResizeObserver(measure).observe(track);
+
+    const SPEED = 24;           // px/s
+    let pos = 0, vel = 0;       // 현재 위치(px), 드래그 관성 속도(px/s)
+    let dragging = false, holdUntil = 0, visible = false, last = 0;
+    let startX = 0, startPos = 0, lastX = 0, lastT = 0, moved = false;
+
+    const wrap = () => { if (!period) return; pos = ((pos % period) + period) % period; };
+    const paint = () => { track.style.transform = `translate3d(${-pos}px,0,0)`; };
+
+    function frame(t) {
+      const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+      if (visible && !dragging) {
+        if (Math.abs(vel) > 5) { pos += vel * dt; vel *= Math.pow(0.08, dt); }          // 관성 감쇠
+        else if (!reduce && t > holdUntil) pos += SPEED * dt;                          // 자동 흐름
+        wrap(); paint();
       }
-      raf = requestAnimationFrame(step);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { threshold: 0.05 }).observe(strip);
+
+    strip.addEventListener('pointerdown', (e) => {
+      dragging = true; moved = false; vel = 0;
+      startX = lastX = e.clientX; startPos = pos; lastT = performance.now();
+      strip.setPointerCapture(e.pointerId);
+    });
+    strip.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 6) moved = true;
+      pos = startPos - dx; wrap(); paint();
+      const now = performance.now();
+      if (now - lastT > 0) vel = -(e.clientX - lastX) / ((now - lastT) / 1000);
+      lastX = e.clientX; lastT = now;
+    });
+    const release = () => {
+      if (!dragging) return;
+      dragging = false;
+      holdUntil = performance.now() + 2500;                   // 손 뗀 뒤 2.5초 후 다시 흐름
+      if (!moved) vel = 0;
     };
-    const pause = () => { paused = true; clearTimeout(resumeTimer); };
-    const resume = () => { clearTimeout(resumeTimer); resumeTimer = setTimeout(() => { pos = strip.scrollLeft; paused = false; }, 2500); };
-    strip.addEventListener('pointerdown', pause);
-    strip.addEventListener('pointerup', resume);
-    strip.addEventListener('pointercancel', resume);
-    strip.addEventListener('mouseenter', pause);
-    strip.addEventListener('mouseleave', resume);
-    strip.addEventListener('touchstart', pause, { passive: true });
-    strip.addEventListener('touchend', resume, { passive: true });
-    strip.addEventListener('scroll', () => {
-      if (!paused) return;
-      const h = half();
-      if (strip.scrollLeft >= h) strip.scrollLeft -= h;
-      else if (strip.scrollLeft <= 0) strip.scrollLeft += h;
-      pos = strip.scrollLeft;
-    }, { passive: true });
-    new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible && !raf) raf = requestAnimationFrame(step); }, { threshold: 0.1 }).observe(strip);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) paused = true;
+    strip.addEventListener('pointerup', release);
+    strip.addEventListener('pointercancel', release);
+    strip.addEventListener('lostpointercapture', release);
+    // 드래그였으면 탭(라이트박스)으로 처리하지 않음
+    strip.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+    strip.addEventListener('mouseenter', () => { holdUntil = Infinity; });
+    strip.addEventListener('mouseleave', () => { holdUntil = performance.now() + 800; });
   });
 }
 
@@ -536,30 +557,6 @@ function initStrips() {
       ticking = false;
     });
   }, { passive: true });
-})();
-
-/* ---------- 여행 / 추억 모드 ---------- */
-(function initMode() {
-  const KEY = 'chuncheon60:mode';
-  const sw = $('.mode-switch'); if (!sw) return;
-  const btns = $$('button', sw);
-  function apply(mode, { scroll = false } = {}) {
-    document.body.dataset.mode = mode;
-    $$('[data-trip]').forEach((el) => { el.hidden = mode !== 'trip'; });
-    $$('[data-memory]').forEach((el) => { el.hidden = mode !== 'memory'; });
-    btns.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
-    sw.dataset.mode = mode;
-    if (mode === 'memory') renderMemory();
-    renderCountdown();
-    try { localStorage.setItem(KEY, mode); } catch {}
-    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  btns.forEach((b) => b.addEventListener('click', () => { if (document.body.dataset.mode !== b.dataset.mode) apply(b.dataset.mode, { scroll: true }); }));
-  let mode = null;
-  try { mode = localStorage.getItem(KEY); } catch {}
-  if (location.hash.startsWith('#m-')) mode = 'memory';
-  if (!mode) mode = ymd(nowKST()) > TRIP_DATE ? 'memory' : 'trip';
-  apply(mode);
 })();
 
 /* ---------- Gallery lightbox ---------- */
@@ -896,7 +893,6 @@ async function loadWeather() {
 }
 
 /* ---------- Bottom nav active state ---------- */
-let navIO = null;
 function initNav() {
   if (navIO) navIO.disconnect();
   const links = $$('.bottom-nav a');
@@ -936,3 +932,28 @@ updateSecretTime();
 setInterval(() => { updateTimeline(); renderPlan(); updateSecretTime(); }, 30 * 1000);
 setInterval(renderCountdown, 1000);
 setInterval(loadWeather, 10 * 60 * 1000);
+
+/* ---------- 여행 / 추억 모드 ---------- */
+(function initMode() {
+  const KEY = 'chuncheon60:mode';
+  const sw = $('.mode-switch'); if (!sw) return;
+  const btns = $$('button', sw);
+  function apply(mode, { scroll = false } = {}) {
+    document.body.dataset.mode = mode;
+    $$('[data-trip]').forEach((el) => { el.hidden = mode !== 'trip'; });
+    $$('[data-memory]').forEach((el) => { el.hidden = mode !== 'memory'; });
+    btns.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
+    sw.dataset.mode = mode;
+    if (mode === 'memory') renderMemory();
+    renderCountdown();
+    try { localStorage.setItem(KEY, mode); } catch {}
+    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  btns.forEach((b) => b.addEventListener('click', () => { if (document.body.dataset.mode !== b.dataset.mode) apply(b.dataset.mode, { scroll: true }); }));
+  let mode = null;
+  try { mode = localStorage.getItem(KEY); } catch {}
+  if (location.hash.startsWith('#m-')) mode = 'memory';
+  if (!mode) mode = ymd(nowKST()) > TRIP_DATE ? 'memory' : 'trip';
+  apply(mode);
+})();
+

@@ -539,9 +539,10 @@ body[data-mode="memory"] .hero { min-height: 70vh; }
 .mem-memo { width: min(980px, 100% - 48px); margin: 22px auto 0; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.75); }
 .mem-memo::before { content: ""; display: block; width: 36px; height: 3px; border-radius: 3px; background: var(--tone); margin-bottom: 14px; }
 
-.strip { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; cursor: grab; }
+.strip { overflow: hidden; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.strip:active { cursor: grabbing; }
 .strip::-webkit-scrollbar { display: none; }
-.strip-track { display: flex; gap: 10px; width: max-content; padding: 0 24px; }
+.strip-track { display: flex; gap: 10px; width: max-content; padding: 0 24px; will-change: transform; backface-visibility: hidden; }
 .strip-item { flex: 0 0 auto; height: min(56vh, 440px); margin: 0; background: #111; border-radius: 14px; overflow: hidden; }
 .strip-item img { height: 100%; width: 100%; object-fit: cover; display: block; border-radius: 14px; background: #111; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
 @media (max-width: 600px) { .strip-item { height: 46vh; } .strip-track { padding: 0 18px; } .mem-cover { height: 78vh; } }
