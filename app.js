@@ -476,6 +476,8 @@ function renderMemory() {
       <p class="mem-end-sub">2026. 8. 22. 춘천 · 보미네 & 소영이네 & 셜록이</p>
     </section>`;
   root.dataset.built = '1';
+  // 깨진 이미지는 칸째로 숨김 (캐시 불일치 등)
+  $$('img', root).forEach((img) => img.addEventListener('error', () => { const f = img.closest('.strip-item'); if (f) f.remove(); else img.style.visibility = 'hidden'; }, { once: true }));
   initStrips();
   initNav();
 }
