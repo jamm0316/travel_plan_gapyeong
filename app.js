@@ -432,18 +432,21 @@ const MEMORY = [
     cover: 'images/memory/dak/01-dakgalbi.jpg',
     photos: ['images/memory/dak/02-table.jpg', 'images/memory/dak/03-bokkeumbap.jpg', 'images/memory/dak/01-dakgalbi.jpg'] },
   { id: 'cafe', emoji: '☕', time: '12:30', title: '카페 드 220볼트', sub: '빨간 문 앞에서', tone: '#e0564e',
-    memo: '커피보다 오래 머문 건 빨간 문 앞. 셜록이도 한 컷.',
+    memo: '커피보다 오래 머문 건 빨간 문 앞과 레고 전시. 셜록이도 한 컷.',
     cover: 'images/memory/cafe/04-reddoor-all.jpg',
-    photos: ['images/memory/cafe/01-three.jpg', 'images/memory/cafe/02-reddoor.jpg', 'images/memory/cafe/03-reddoor-three.jpg', 'images/memory/cafe/04-reddoor-all.jpg'] },
+    photos: ['images/memory/cafe/01-three.jpg', 'images/memory/cafe/05-mom-terrace.jpg', 'images/memory/cafe/02-reddoor.jpg', 'images/memory/cafe/09-parents-reddoor.jpg', 'images/memory/cafe/03-reddoor-three.jpg', 'images/memory/cafe/06-dad-profile.jpg', 'images/memory/cafe/07-mom-sherlock-lego.jpg', 'images/memory/cafe/08-eiffel-lego.jpg', 'images/memory/cafe/04-reddoor-all.jpg'] },
   { id: 'emart', emoji: '🛒', time: '14:40', title: '이마트 춘천점', sub: '저녁거리 고르기', tone: '#ffc107',
-    memo: '포도는 아빠가 골랐다. 한 명은 슬쩍 빠져나가 케이크를 찾으러.',
+    memo: '빗길 정체를 뚫고 도착. 포도는 아빠가 골랐고, 한 명은 슬쩍 빠져나가 케이크를 찾으러.',
     cover: 'images/memory/emart/02-grapes.jpg',
-    photos: ['images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
+    photos: ['images/memory/emart/05-rain-traffic.jpg', 'images/memory/emart/04-walk.jpg', 'images/memory/emart/03-veggies.jpg', 'images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
   { id: 'dinner', emoji: '🥓', time: '저녁', title: '삼겹살, 그리고 케이크', sub: '숙소 마당에서', tone: '#b47cff',
     memo: '연기 속에서 구운 고기, 60이 적힌 케이크, 그림 맞히기와 추억의 뽑기판.',
     cover: 'images/memory/dinner/01-grill.jpg',
-    photos: ['images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
+    photos: ['images/memory/dinner/07-grill-three.jpg', 'images/memory/dinner/08-yard.jpg', 'images/memory/dinner/09-balloons.jpg', 'images/memory/dinner/06-table.jpg', 'images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
 ];
+
+// 세로 사진 목록 (레이아웃을 로드 전에 고정하기 위한 비율 정보)
+const PORTRAIT = new Set(['02-reddoor.jpg', '03-reddoor-three.jpg', '04-reddoor-all.jpg', '02-cake.jpg']);
 
 function renderMemory() {
   const root = $('#memory-root'); if (!root || root.dataset.built) return;
@@ -461,7 +464,7 @@ function renderMemory() {
       <div class="mem-body">
         <div class="strip" data-strip aria-label="${c.title} 사진">
           <div class="strip-track">
-            ${c.photos.map((src) => `<figure class="strip-item"><img src="${src}" alt="${c.title}" loading="lazy" /></figure>`).join('')}
+            ${c.photos.map((src) => { const pt = PORTRAIT.has(src.split('/').pop()); return `<figure class="strip-item" style="aspect-ratio:${pt ? '3/4' : '4/3'}"><img src="${src}" alt="${c.title}" width="${pt ? 1200 : 1600}" height="${pt ? 1600 : 1200}" loading="lazy" decoding="async" /></figure>`; }).join('')}
           </div>
         </div>
         <p class="mem-memo">${c.memo}</p>
@@ -481,11 +484,14 @@ function initStrips() {
   $$('[data-strip]').forEach((strip) => {
     const track = $('.strip-track', strip);
     // 끊김 없는 루프를 위해 복제
-    track.innerHTML += track.innerHTML;
+    const count = track.children.length;
+    track.innerHTML += track.innerHTML;                      // 2벌 복제 → 끊김 없는 루프
+    const firstB = () => track.children[count];              // 두 번째 벌의 첫 사진
     let paused = false, visible = false, raf = null, resumeTimer = null;
     let pos = 0;               // 소수 누적 위치 (scrollLeft는 정수로 반올림되므로 따로 관리)
     const speed = 0.4;         // px/frame ≈ 24px/s
-    const half = () => track.scrollWidth / 2;
+    // 반복 주기 = 첫 사진 → 복제본 첫 사진까지의 거리 (좌우 패딩 때문에 scrollWidth/2 와 다름)
+    const half = () => firstB().offsetLeft - track.children[0].offsetLeft;
     const step = () => {
       if (!paused && visible) {
         pos += speed;
