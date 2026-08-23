@@ -430,24 +430,24 @@ document.addEventListener('click', (e) => {
 const MEMORY = [
   { id: 'dak', emoji: '🍗', time: '10:50', title: '통나무집닭갈비', sub: '춘천의 시작은 역시 닭갈비', tone: '#ff7a3d',
     memo: '대기 없이 들어가 치즈까지 얹었다. 마지막 볶음밥은 국룰.',
-    cover: 'images/memory/dak/01-dakgalbi.jpg',
-    photos: ['images/memory/dak/02-table.jpg', 'images/memory/dak/03-bokkeumbap.jpg', 'images/memory/dak/01-dakgalbi.jpg'] },
+    cover: 'images/memory/dak/00-cover-selfie.jpg',
+    photos: ['images/memory/dak/00-cover-selfie.jpg', 'images/memory/dak/02-table.jpg', 'images/memory/dak/03-bokkeumbap.jpg', 'images/memory/dak/01-dakgalbi.jpg'] },
   { id: 'cafe', emoji: '☕', time: '12:30', title: '카페 드 220볼트', sub: '빨간 문 앞에서', tone: '#e0564e',
     memo: '커피보다 오래 머문 건 빨간 문 앞과 레고 전시. 셜록이도 한 컷.',
-    cover: 'images/memory/cafe/04-reddoor-all.jpg',
-    photos: ['images/memory/cafe/01-three.jpg', 'images/memory/cafe/05-mom-terrace.jpg', 'images/memory/cafe/02-reddoor.jpg', 'images/memory/cafe/09-parents-reddoor.jpg', 'images/memory/cafe/03-reddoor-three.jpg', 'images/memory/cafe/06-dad-profile.jpg', 'images/memory/cafe/07-mom-sherlock-lego.jpg', 'images/memory/cafe/08-eiffel-lego.jpg', 'images/memory/cafe/04-reddoor-all.jpg'] },
+    cover: 'images/memory/cafe/00-cover-family.jpg',
+    photos: ['images/memory/cafe/00-cover-family.jpg', 'images/memory/cafe/01-three.jpg', 'images/memory/cafe/05-mom-terrace.jpg', 'images/memory/cafe/02-reddoor.jpg', 'images/memory/cafe/09-parents-reddoor.jpg', 'images/memory/cafe/03-reddoor-three.jpg', 'images/memory/cafe/06-dad-profile.jpg', 'images/memory/cafe/07-mom-sherlock-lego.jpg', 'images/memory/cafe/08-eiffel-lego.jpg', 'images/memory/cafe/04-reddoor-all.jpg'] },
   { id: 'emart', emoji: '🛒', time: '14:40', title: '이마트 춘천점', sub: '저녁거리 고르기', tone: '#ffc107',
     memo: '빗길 정체를 뚫고 도착. 포도는 아빠가 골랐고, 한 명은 슬쩍 빠져나가 케이크를 찾으러.',
-    cover: 'images/memory/emart/02-grapes.jpg',
-    photos: ['images/memory/emart/05-rain-traffic.jpg', 'images/memory/emart/04-walk.jpg', 'images/memory/emart/03-veggies.jpg', 'images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
+    cover: 'images/memory/emart/00-cover-cart.jpg',
+    photos: ['images/memory/emart/00-cover-cart.jpg', 'images/memory/emart/05-rain-traffic.jpg', 'images/memory/emart/04-walk.jpg', 'images/memory/emart/03-veggies.jpg', 'images/memory/emart/01-vsign.jpg', 'images/memory/emart/02-grapes.jpg'] },
   { id: 'dinner', emoji: '🥓', time: '저녁', title: '삼겹살, 그리고 케이크', sub: '숙소 마당에서', tone: '#b47cff',
-    memo: '연기 속에서 구운 고기, 60이 적힌 케이크, 그림 맞히기와 추억의 뽑기판.',
-    cover: 'images/memory/dinner/01-grill.jpg',
-    photos: ['images/memory/dinner/07-grill-three.jpg', 'images/memory/dinner/08-yard.jpg', 'images/memory/dinner/09-balloons.jpg', 'images/memory/dinner/06-table.jpg', 'images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
+    memo: '연기 속에서 구운 고기, 60이 적힌 케이크, 그림 맞히기와 추억의 뽑기판. 그리고 단체 티셔츠.',
+    cover: 'images/memory/dinner/00-cover-family.jpg',
+    photos: ['images/memory/dinner/00-cover-family.jpg', 'images/memory/dinner/07-grill-three.jpg', 'images/memory/dinner/08-yard.jpg', 'images/memory/dinner/09-balloons.jpg', 'images/memory/dinner/06-table.jpg', 'images/memory/dinner/02-cake.jpg', 'images/memory/dinner/03-game-board.jpg', 'images/memory/dinner/04-drawing-mom.jpg', 'images/memory/dinner/05-drawing-glasses.jpg', 'images/memory/dinner/01-grill.jpg'] },
 ];
 
 // 세로 사진 목록 (레이아웃을 로드 전에 고정하기 위한 비율 정보)
-const PORTRAIT = new Set(['02-reddoor.jpg', '03-reddoor-three.jpg', '04-reddoor-all.jpg', '02-cake.jpg']);
+const PORTRAIT = new Set(['02-reddoor.jpg', '03-reddoor-three.jpg', '04-reddoor-all.jpg', '02-cake.jpg', '00-cover-selfie.jpg', '00-cover-family.jpg']);
 
 function renderMemory() {
   const root = $('#memory-root'); if (!root || root.dataset.built) return;
