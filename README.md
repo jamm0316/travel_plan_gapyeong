@@ -40,3 +40,4 @@ Vercel / GitHub Pages / Netlify 등 아무 정적 호스팅에 폴더째 올리�
 - 상단 [여행 | 추억] 토글. 여행일(8/22) 이후 첫 진입은 추억 모드가 기본, 선택은 기기에 저장됩니다.
 - 챕터 데이터는 `app.js`의 `MEMORY` 배열. 사진을 추가하려면 `images/memory/{dak|cafe|emart|dinner}/`에 1600px JPG를 넣고 `photos` 배열에 경로를 추가하세요.
 - 스트립은 손대지 않으면 천천히 오른쪽으로 흐르고, 만지면 멈추고 직접 넘길 수 있습니다. 탭하면 크게 보기.
+SKBS_OCR_AGENT_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwb3NpY3ViZSAiLCJpYXQiOjE3ODg0ODk4OTksInN1YiI6Im1lZGljYWxfb2NyX2FwaSIsInR5cGUiOiJTWVNURU0iLCJ1c2VySWQiOjc4LCJ1c2VybmFtZSI6Im1lZGljYWxfb2NyX2FwaSIsInJvbGVzIjpbIlNZU19BRE1JTiJdLCJncm91cHMiOltdLCJleHAiOjQxMDIyMzk2MDB9.8GsjhHXPjVAtz78vpDxpy6FL2c_7yjsq5Z8o_UIu2gg
